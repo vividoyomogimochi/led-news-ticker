@@ -11,7 +11,7 @@
         padding: 0;
       }
       body {
-        background: #111;
+        background: #111 center / cover;
         color: #eee;
         font-family: sans-serif;
         display: flex;
@@ -46,9 +46,13 @@
       <iframe src="/ticker/" title="LED News Ticker" scrolling="no"></iframe>
     </div>
     <script>
+      // Forward query params to the ticker iframe
+      const iframe = document.querySelector('iframe');
+      if (iframe && location.search) {
+        iframe.src = '/ticker/' + location.search;
+      }
       window.addEventListener('message', (e) => {
         if (e.data?.type === 'ticker-height') {
-          const iframe = document.querySelector('iframe');
           if (iframe) iframe.style.height = e.data.height + 'px';
         }
       });
