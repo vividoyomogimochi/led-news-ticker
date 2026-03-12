@@ -80,6 +80,7 @@ export class LedBoard {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private bitmap: Bitmap | null = null;
+  private pendingBitmap: Bitmap | null = null;
   private offset = 0;
   private frameCount = 0;
   private rafId: number | null = null;
@@ -93,9 +94,16 @@ export class LedBoard {
 
   setSegments(segments: Segment[]): void {
     if (segments.length === 0) return;
-    this.bitmap = buildBitmap(segments);
-    this.offset = BOARD_W;
-    this.frameCount = 0;
+    const newBitmap = buildBitmap(segments);
+    if (this.bitmap === null) {
+      // No current content — start immediately
+      this.bitmap = newBitmap;
+      this.offset = BOARD_W;
+      this.frameCount = 0;
+    } else {
+      // Let the current scroll cycle finish, then switch
+      this.pendingBitmap = newBitmap;
+    }
   }
 
   start(): void {
@@ -156,7 +164,14 @@ export class LedBoard {
     if (this.frameCount >= FPS_DIV) {
       this.frameCount = 0;
       this.offset = (this.offset + 1) % totalW;
-      if (this.offset === 0) this.offset = BOARD_W;
+      if (this.offset === 0) {
+        // Cycle complete — apply pending bitmap if any
+        if (this.pendingBitmap !== null) {
+          this.bitmap = this.pendingBitmap;
+          this.pendingBitmap = null;
+        }
+        this.offset = BOARD_W;
+      }
     }
   }
 }
