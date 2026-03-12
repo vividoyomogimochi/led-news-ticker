@@ -96,9 +96,9 @@ export class LedBoard {
     if (segments.length === 0) return;
     const newBitmap = buildBitmap(segments);
     if (this.bitmap === null) {
-      // No current content — start immediately
+      // No current content — start immediately, text entering from right edge
       this.bitmap = newBitmap;
-      this.offset = BOARD_W;
+      this.offset = BOARD_W - Math.ceil(BOARD_W / STEP);
       this.frameCount = 0;
     } else {
       // Let the current scroll cycle finish, then switch
@@ -170,7 +170,7 @@ export class LedBoard {
           this.bitmap = this.pendingBitmap;
           this.pendingBitmap = null;
         }
-        this.offset = BOARD_W;
+        this.offset = BOARD_W - Math.ceil(BOARD_W / STEP);
       }
     }
   }
