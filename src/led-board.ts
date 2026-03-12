@@ -4,7 +4,7 @@ const DOT_PX = 5;
 const GAP_PX = 1;
 const STEP = DOT_PX + GAP_PX;
 const ROWS = 13;
-const FPS_DIV = 4;
+const SCROLL_MS = 1000 / 15; // 15px/sec (same as 60fps × FPS_DIV=4)
 
 const COLORS = {
   normal: { dot: '#e0e0e0', glow: 'rgba(200,200,200,0.35)' },
@@ -77,7 +77,7 @@ export class StreamingBitmap {
     const canvas = document.createElement('canvas');
     canvas.width = chunkW;
     canvas.height = renderH;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, chunkW, renderH);
     ctx.font = FONT;
@@ -113,7 +113,7 @@ export class LedBoard {
   private bitmap: StreamingBitmap | null = null;
   private pendingBitmap: StreamingBitmap | null = null;
   private offset = 0;
-  private frameCount = FPS_DIV - 1;
+  private lastDrawTime = 0;
   private rafId: number | null = null;
   private currentSegments: Segment[] = [];
   private resizeObserver: ResizeObserver;
@@ -138,7 +138,6 @@ export class LedBoard {
       this.bitmap = new StreamingBitmap(this.currentSegments, this.boardW);
       this.offset = this.boardW - Math.ceil(this.boardW / STEP);
       this.pendingBitmap = null;
-      this.frameCount = 0;
     }
   }
 
@@ -149,15 +148,14 @@ export class LedBoard {
     if (this.bitmap === null) {
       this.bitmap = newBitmap;
       this.offset = this.boardW - Math.ceil(this.boardW / STEP);
-      this.frameCount = 0;
     } else {
       this.pendingBitmap = newBitmap;
     }
   }
 
   start(): void {
-    const loop = () => {
-      this.draw();
+    const loop = (timestamp: number) => {
+      this.draw(timestamp);
       this.rafId = requestAnimationFrame(loop);
     };
     this.rafId = requestAnimationFrame(loop);
@@ -171,10 +169,9 @@ export class LedBoard {
     this.resizeObserver.disconnect();
   }
 
-  private draw(): void {
-    this.frameCount++;
-    if (this.frameCount < FPS_DIV) return;
-    this.frameCount = 0;
+  private draw(timestamp: number): void {
+    if (timestamp - this.lastDrawTime < SCROLL_MS) return;
+    this.lastDrawTime = timestamp;
 
     const { ctx, canvas } = this;
     ctx.fillStyle = '#000';
