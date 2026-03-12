@@ -13,17 +13,13 @@
  * スナップショット更新: pnpm vitest run --update-snapshots
  */
 
-import path from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { registerFont } from 'canvas';
 
 import type { Segment } from './sources';
 import { StreamingBitmap } from './led-board';
 
-const FONT_PATH = path.resolve(
-  import.meta.dirname,
-  '../public/fonts/PixelMplus12-Regular.ttf',
-);
+const FONT_PATH = './public/fonts/PixelMplus12-Regular.ttf';
 const ROWS = 13;
 
 type LedFrame = Int8Array[];
