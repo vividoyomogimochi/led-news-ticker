@@ -10,7 +10,8 @@ export default defineConfig({
           const host = req.headers['host'] ?? 'localhost';
           const allowedOrigin = `http://${host}`;
           const requestOrigin = req.headers['origin'];
-          const corsOrigin = requestOrigin === allowedOrigin ? allowedOrigin : null;
+          // No Origin header = same-origin request (browser omits it); allow it.
+          const corsOrigin = !requestOrigin || requestOrigin === allowedOrigin ? allowedOrigin : null;
 
           if (req.method === 'OPTIONS') {
             if (!corsOrigin) { res.writeHead(403); res.end(); return; }

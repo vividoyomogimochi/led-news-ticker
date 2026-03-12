@@ -12,7 +12,8 @@ export async function onRequest(context) {
   // Derive the allowed origin from the function's own URL (same domain)
   const allowedOrigin = new URL(request.url).origin;
   const requestOrigin = request.headers.get('Origin');
-  const corsOrigin = requestOrigin === allowedOrigin ? allowedOrigin : null;
+  // No Origin header = same-origin request (browser omits it); allow it.
+  const corsOrigin = !requestOrigin || requestOrigin === allowedOrigin ? allowedOrigin : null;
 
   // Handle preflight
   if (request.method === 'OPTIONS') {
