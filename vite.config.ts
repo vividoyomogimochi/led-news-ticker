@@ -73,6 +73,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         ticker: resolve(__dirname, 'ticker/index.html'),
+        config: resolve(__dirname, 'config/index.html'),
       },
     },
   },

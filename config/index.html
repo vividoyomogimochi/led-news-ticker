@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LED News Ticker — Config</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --amber: #ffaa00;
+        --amber-dim: #c07e20;
+        --amber-glow: rgba(255, 170, 0, 0.25);
+        --amber-glow-strong: rgba(255, 170, 0, 0.5);
+        --bg: #070707;
+        --surface: #0d0d0d;
+        --border: #1c1c1c;
+        --border-active: #ffaa00;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg);
+        background-image: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.18) 2px,
+          rgba(0, 0, 0, 0.18) 4px
+        );
+        color: var(--amber);
+        font-family: 'Share Tech Mono', monospace;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 48px 16px 64px;
+        min-height: 100vh;
+        gap: 32px;
+      }
+
+      /* ── Header ── */
+      .header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .logo {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 0.25em;
+        color: var(--amber-dim);
+        text-transform: uppercase;
+      }
+
+      h1 {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 400;
+        font-size: 1.4rem;
+        letter-spacing: 0.15em;
+        color: var(--amber);
+        text-shadow:
+          0 0 12px var(--amber-glow-strong),
+          0 0 32px var(--amber-glow);
+      }
+
+      /* ── Tabs ── */
+      .tabs {
+        display: flex;
+        width: 100%;
+        max-width: 440px;
+        gap: 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .tab-btn {
+        background: none;
+        border: none;
+        border-bottom: 1px solid transparent;
+        color: var(--amber-dim);
+        cursor: pointer;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 1rem;
+        letter-spacing: 0.08em;
+        padding: 10px 28px;
+        margin-bottom: -1px;
+        transition:
+          color 0.2s,
+          border-color 0.2s,
+          text-shadow 0.2s;
+        text-transform: uppercase;
+      }
+
+      .tab-btn.active {
+        color: var(--amber);
+        border-bottom-color: var(--amber);
+        text-shadow: 0 0 8px var(--amber-glow-strong);
+      }
+
+      .tab-btn:hover:not(.active) {
+        color: #bb7700;
+      }
+
+      /* ── Panel / Form ── */
+      .panel {
+        display: none;
+        width: 100%;
+        max-width: 440px;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .panel.active {
+        display: flex;
+      }
+
+      /* ── Field ── */
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      label {
+        font-size: 0.82rem;
+        letter-spacing: 0.1em;
+        color: var(--amber-dim);
+        text-transform: uppercase;
+      }
+
+      input,
+      select {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        color: var(--amber);
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 1rem;
+        padding: 10px 12px;
+        width: 100%;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      input::placeholder {
+        color: var(--amber-dim);
+        opacity: 0.6;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--border-active);
+        box-shadow:
+          0 0 0 1px var(--amber-glow),
+          0 0 12px var(--amber-glow);
+      }
+
+      select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a4f00' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 32px;
+        cursor: pointer;
+      }
+
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .row input {
+        flex: 1;
+        width: auto;
+      }
+
+      .unit {
+        font-size: 0.9rem;
+        letter-spacing: 0.06em;
+        color: var(--amber-dim);
+        white-space: nowrap;
+        text-transform: uppercase;
+      }
+
+      .hint {
+        font-size: 0.82rem;
+        color: var(--amber-dim);
+        letter-spacing: 0.02em;
+      }
+
+      /* ── Divider ── */
+      .divider {
+        border: none;
+        border-top: 1px solid var(--border);
+      }
+
+      /* ── Submit ── */
+      button[type='submit'] {
+        background: transparent;
+        border: 1px solid var(--amber-dim);
+        border-radius: 2px;
+        color: var(--amber);
+        cursor: pointer;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 1rem;
+        letter-spacing: 0.12em;
+        padding: 13px;
+        text-transform: uppercase;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s,
+          color 0.2s;
+        width: 100%;
+      }
+
+      button[type='submit']:hover {
+        border-color: var(--amber);
+        box-shadow:
+          0 0 12px var(--amber-glow),
+          inset 0 0 12px rgba(255, 170, 0, 0.04);
+        text-shadow: 0 0 8px var(--amber-glow-strong);
+      }
+
+      /* ── Preview ── */
+      .preview {
+        width: 100%;
+        max-width: 440px;
+        border-top: 1px solid var(--border);
+        padding-top: 12px;
+        font-size: 0.85rem;
+        letter-spacing: 0.02em;
+        color: var(--amber-dim);
+        word-break: break-all;
+        min-height: 36px;
+      }
+
+      .preview a {
+        color: var(--amber-dim);
+        text-decoration: none;
+        transition:
+          color 0.2s,
+          text-shadow 0.2s;
+      }
+
+      .preview a:hover {
+        color: var(--amber);
+        text-shadow: 0 0 8px var(--amber-glow-strong);
+      }
+
+      /* ── Data info ── */
+      .data-info {
+        width: 100%;
+        max-width: 440px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .data-info-title {
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        color: var(--amber-dim);
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+      }
+
+      .data-block {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .data-block-label {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        color: var(--amber-dim);
+      }
+
+      .data-block pre {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        padding: 10px 12px;
+        overflow-x: auto;
+      }
+
+      .data-block code {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.9rem;
+        color: var(--amber);
+      }
+
+      .data-info .hint code {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.8rem;
+        color: var(--amber);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <p class="logo">LED News Ticker</p>
+      <h1>Config</h1>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="rss">RSS</button>
+      <button class="tab-btn" data-tab="ws">WebSocket</button>
+    </div>
+
+    <!-- RSS -->
+    <form class="panel active" id="panel-rss">
+      <div class="field">
+        <label for="rss-url">フィード URL</label>
+        <input id="rss-url" type="url" placeholder="https://example.com/feed.xml" />
+      </div>
+
+      <div class="field">
+        <label for="rss-interval">取得間隔</label>
+        <div class="row">
+          <input id="rss-interval" type="number" min="1" value="5" />
+          <span class="unit">分</span>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="field">
+        <label for="rss-bg">背景画像 URL</label>
+        <input id="rss-bg" type="url" placeholder="https://example.com/bg.jpg" />
+        <p class="hint">ラッパーページの背景に適用されます</p>
+      </div>
+
+      <button type="submit">ティッカーを開く →</button>
+    </form>
+
+    <!-- WebSocket -->
+    <form class="panel" id="panel-ws">
+      <div class="field">
+        <label for="ws-url">WebSocket URL</label>
+        <input id="ws-url" type="url" placeholder="ws://localhost:8080" />
+      </div>
+
+      <hr class="divider" />
+
+      <div class="field">
+        <label for="ws-bg">背景画像 URL</label>
+        <input id="ws-bg" type="url" placeholder="https://example.com/bg.jpg" />
+        <p class="hint">ラッパーページの背景に適用されます</p>
+      </div>
+
+      <button type="submit">ティッカーを開く →</button>
+    </form>
+
+    <div class="preview" id="preview"></div>
+
+    <template id="ws-data-info">
+      <div class="data-info">
+        <p class="data-info-title">受信データ形式</p>
+        <div class="data-block">
+          <p class="data-block-label">JSON（推奨）</p>
+          <pre><code>{ "text": "表示テキスト", "type": "normal" }</code></pre>
+          <p class="hint">
+            <code>type</code> は省略可。<br />値: <code>normal</code> / <code>yellow</code>
+          </p>
+        </div>
+        <div class="data-block">
+          <p class="data-block-label">プレーンテキスト</p>
+          <pre><code>表示テキスト</code></pre>
+          <p class="hint">JSON でない文字列はそのまま表示。</p>
+        </div>
+      </div>
+    </template>
+
+    <script>
+      const previewEl = document.getElementById('preview');
+      let activeTab = 'rss';
+
+      // Inject WS data info block after preview
+      const wsInfoTemplate = document.getElementById('ws-data-info');
+      const wsInfoEl = wsInfoTemplate.content.firstElementChild.cloneNode(true);
+      wsInfoEl.style.display = 'none';
+      previewEl.insertAdjacentElement('afterend', wsInfoEl);
+
+      function syncDataInfo() {
+        wsInfoEl.style.display = activeTab === 'ws' ? '' : 'none';
+      }
+
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          activeTab = btn.dataset.tab;
+          document
+            .querySelectorAll('.tab-btn')
+            .forEach((b) => b.classList.toggle('active', b === btn));
+          document
+            .querySelectorAll('.panel')
+            .forEach((p) => p.classList.toggle('active', p.id === 'panel-' + activeTab));
+          updatePreview();
+          syncDataInfo();
+        });
+      });
+
+      function buildParams() {
+        const p = new URLSearchParams();
+        if (activeTab === 'rss') {
+          const url = document.getElementById('rss-url').value.trim();
+          const interval = Number(document.getElementById('rss-interval').value) || 5;
+          const bg = document.getElementById('rss-bg').value.trim();
+          p.set('type', 'rss');
+          if (url) p.set('url', url);
+          if (interval !== 5) p.set('interval', String(interval * 60 * 1000));
+          if (bg) p.set('bg', bg);
+        } else {
+          const url = document.getElementById('ws-url').value.trim();
+          const bg = document.getElementById('ws-bg').value.trim();
+          p.set('type', 'ws');
+          if (url) p.set('url', url);
+          if (bg) p.set('bg', bg);
+        }
+        return p;
+      }
+
+      function updatePreview() {
+        const qs = buildParams().toString();
+        const href = '/' + (qs ? '?' + qs : '');
+        previewEl.innerHTML = '<a href="' + href + '">' + href + '</a>';
+      }
+
+      document.getElementById('panel-rss').addEventListener('input', updatePreview);
+      document.getElementById('panel-ws').addEventListener('input', updatePreview);
+
+      document.getElementById('panel-rss').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const qs = buildParams().toString();
+        location.href = '/' + (qs ? '?' + qs : '');
+      });
+      document.getElementById('panel-ws').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const qs = buildParams().toString();
+        location.href = '/' + (qs ? '?' + qs : '');
+      });
+
+      updatePreview();
+    </script>
+  </body>
+</html>
