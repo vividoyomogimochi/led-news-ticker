@@ -113,7 +113,7 @@ export class LedBoard {
   private bitmap: StreamingBitmap | null = null;
   private pendingBitmap: StreamingBitmap | null = null;
   private offset = 0;
-  private frameCount = 0;
+  private frameCount = FPS_DIV - 1;
   private rafId: number | null = null;
   private currentSegments: Segment[] = [];
   private resizeObserver: ResizeObserver;
@@ -172,6 +172,10 @@ export class LedBoard {
   }
 
   private draw(): void {
+    this.frameCount++;
+    if (this.frameCount < FPS_DIV) return;
+    this.frameCount = 0;
+
     const { ctx, canvas } = this;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, this.boardW, canvas.height);
@@ -180,6 +184,11 @@ export class LedBoard {
 
     const { totalW } = this.bitmap;
     const VISIBLE = Math.ceil(this.boardW / STEP);
+
+    type DotKind = 'normal' | 'yellow' | 'sep' | 'off';
+    const paths: Record<DotKind, { cx: number; cy: number }[]> = {
+      normal: [], yellow: [], sep: [], off: [],
+    };
 
     for (let i = 0; i < VISIBLE; i++) {
       const srcCol = (this.offset + i) % totalW;
@@ -193,35 +202,41 @@ export class LedBoard {
         const v = col[row];
 
         if (v >= 0) {
-          const key = v === 1 ? 'yellow' : v === 2 ? 'sep' : 'normal';
-          ctx.fillStyle = COLORS[key].glow;
-          ctx.beginPath();
-          ctx.arc(cx, cy, DOT_PX * 1.0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = COLORS[key].dot;
-          ctx.beginPath();
-          ctx.arc(cx, cy, DOT_PX * 0.44, 0, Math.PI * 2);
-          ctx.fill();
+          const key: DotKind = v === 1 ? 'yellow' : v === 2 ? 'sep' : 'normal';
+          paths[key].push({ cx, cy });
         } else {
-          ctx.fillStyle = COLORS.off;
-          ctx.beginPath();
-          ctx.arc(cx, cy, DOT_PX * 0.33, 0, Math.PI * 2);
-          ctx.fill();
+          paths.off.push({ cx, cy });
         }
       }
     }
 
-    this.frameCount++;
-    if (this.frameCount >= FPS_DIV) {
-      this.frameCount = 0;
-      this.offset = (this.offset + 1) % totalW;
-      if (this.offset === 0) {
-        if (this.pendingBitmap !== null) {
-          this.bitmap = this.pendingBitmap;
-          this.pendingBitmap = null;
-        }
-        this.offset = this.boardW - Math.ceil(this.boardW / STEP);
+    const TWO_PI = Math.PI * 2;
+    for (const key of ['normal', 'yellow', 'sep'] as const) {
+      const dots = paths[key];
+      if (dots.length === 0) continue;
+      ctx.fillStyle = COLORS[key].glow;
+      ctx.beginPath();
+      for (const { cx, cy } of dots) { ctx.moveTo(cx + DOT_PX * 1.0, cy); ctx.arc(cx, cy, DOT_PX * 1.0, 0, TWO_PI); }
+      ctx.fill();
+      ctx.fillStyle = COLORS[key].dot;
+      ctx.beginPath();
+      for (const { cx, cy } of dots) { ctx.moveTo(cx + DOT_PX * 0.44, cy); ctx.arc(cx, cy, DOT_PX * 0.44, 0, TWO_PI); }
+      ctx.fill();
+    }
+    if (paths.off.length > 0) {
+      ctx.fillStyle = COLORS.off;
+      ctx.beginPath();
+      for (const { cx, cy } of paths.off) { ctx.moveTo(cx + DOT_PX * 0.33, cy); ctx.arc(cx, cy, DOT_PX * 0.33, 0, TWO_PI); }
+      ctx.fill();
+    }
+
+    this.offset = (this.offset + 1) % totalW;
+    if (this.offset === 0) {
+      if (this.pendingBitmap !== null) {
+        this.bitmap = this.pendingBitmap;
+        this.pendingBitmap = null;
       }
+      this.offset = this.boardW - Math.ceil(this.boardW / STEP);
     }
   }
 }
