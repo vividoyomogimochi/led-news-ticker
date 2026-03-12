@@ -72,30 +72,32 @@ export class StreamingBitmap {
     const startCol = chunkIdx * CHUNK_SIZE;
     const chunkW = Math.min(CHUNK_SIZE, this.totalW - startCol);
 
+    const PAD = 4;
+    const renderH = ROWS + PAD * 2;
     const canvas = document.createElement('canvas');
     canvas.width = chunkW;
-    canvas.height = ROWS;
+    canvas.height = renderH;
     const ctx = canvas.getContext('2d')!;
     ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, chunkW, ROWS);
+    ctx.fillRect(0, 0, chunkW, renderH);
     ctx.font = FONT;
-    ctx.textBaseline = 'middle';
+    ctx.textBaseline = 'bottom';
     ctx.fillStyle = '#fff';
 
     for (const seg of this.segs) {
       const drawX = seg.startX - startCol;
       if (drawX + seg.w > 0 && drawX < chunkW) {
-        ctx.fillText(seg.text, drawX, ROWS / 2);
+        ctx.fillText(seg.text, drawX, PAD + ROWS);
       }
     }
 
-    const imgd = ctx.getImageData(0, 0, chunkW, ROWS).data;
+    const imgd = ctx.getImageData(0, 0, chunkW, renderH).data;
     const data: Int8Array[] = new Array(chunkW);
     for (let col = 0; col < chunkW; col++) {
       const t = this.typeAt[startCol + col];
       const colData = new Int8Array(ROWS);
       for (let row = 0; row < ROWS; row++) {
-        const idx = (row * chunkW + col) * 4;
+        const idx = ((PAD + row) * chunkW + col) * 4;
         colData[row] = imgd[idx] > THRESHOLD ? t : -1;
       }
       data[col] = colData;
