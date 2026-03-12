@@ -60,7 +60,7 @@ export default defineConfig({
               'Vary': 'Origin',
             });
             res.end(Buffer.from(body));
-          } catch (err) {
+          } catch {
             res.writeHead(502);
             res.end('Upstream fetch failed');
           }
