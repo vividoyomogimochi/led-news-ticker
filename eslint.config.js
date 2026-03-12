@@ -12,5 +12,16 @@ export default [
       "@typescript-eslint/no-explicit-any": "warn",
     },
   },
+  {
+    files: ["functions/**/*.js"],
+    languageOptions: {
+      globals: {
+        URL: "readonly",
+        Response: "readonly",
+        Request: "readonly",
+        fetch: "readonly",
+      },
+    },
+  },
   prettier,
 ];
