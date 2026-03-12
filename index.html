@@ -18,64 +18,20 @@
       }
       .board {
         background: #0a0a0a;
-        border: 2px solid #2a2a2a;
-        border-radius: 3px;
-        box-shadow: 0 6px 32px rgba(0,0,0,0.8);
         overflow: hidden;
         width: 700px;
       }
-      .board-header {
-        display: flex;
-        align-items: center;
-        background: #bb0000;
-        padding: 4px 12px;
-        gap: 10px;
-      }
-      .header-label { font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 0.2em; }
-      .header-divider { flex: 1; height: 1px; background: rgba(255,255,255,0.3); }
-      .header-time { font-size: 11px; color: #ffcccc; letter-spacing: 0.1em; font-variant-numeric: tabular-nums; }
       .ticker-wrap {
         background: #000;
         padding: 8px 0;
       }
       #ledCanvas { display: block; }
-      .board-footer {
-        display: flex;
-        align-items: center;
-        background: #080808;
-        border-top: 1px solid #1a1a1a;
-        padding: 5px 12px;
-        gap: 8px;
-      }
-      .footer-tag { font-size: 9px; color: #444; letter-spacing: 0.25em; text-transform: uppercase; }
-      .footer-dots { flex: 1; display: flex; gap: 3px; }
-      .fdot { width: 4px; height: 4px; border-radius: 50%; background: #1a1a1a; }
-      .fdot.on { background: #cc0000; box-shadow: 0 0 4px #ff0000; animation: db 1.6s ease-in-out infinite; }
-      .fdot.on:nth-child(2) { animation-delay: 0.2s; }
-      .fdot.on:nth-child(3) { animation-delay: 0.4s; }
-      @keyframes db { 0%,100% { opacity: 1; } 50% { opacity: 0.15; } }
     </style>
   </head>
   <body>
     <div class="board">
-      <div class="board-header">
-        <span class="header-label">● NEWS</span>
-        <div class="header-divider"></div>
-        <span class="header-time" id="clock">--:--:--</span>
-      </div>
       <div class="ticker-wrap">
         <canvas id="ledCanvas"></canvas>
-      </div>
-      <div class="board-footer">
-        <span class="footer-tag">LIVE</span>
-        <div class="footer-dots">
-          <div class="fdot on"></div><div class="fdot on"></div><div class="fdot on"></div>
-          <div class="fdot"></div><div class="fdot"></div><div class="fdot"></div>
-          <div class="fdot"></div><div class="fdot"></div><div class="fdot"></div>
-          <div class="fdot"></div><div class="fdot"></div><div class="fdot"></div>
-          <div class="fdot"></div><div class="fdot"></div><div class="fdot"></div>
-        </div>
-        <span class="footer-tag">NNN 24</span>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

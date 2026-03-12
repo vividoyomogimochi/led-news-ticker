@@ -27,13 +27,3 @@ board.start();
 scheduler.setOnUpdate((segments) => {
   board.setSegments(segments);
 });
-
-// ── Clock ─────────────────────────────────────────────────
-const clockEl = document.getElementById('clock')!;
-function updateClock() {
-  const now = new Date();
-  const p = (n: number) => String(n).padStart(2, '0');
-  clockEl.textContent = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
-}
-updateClock();
-setInterval(updateClock, 1000);
