@@ -24,7 +24,7 @@ interface SegLayout {
   w: number;
 }
 
-class StreamingBitmap {
+export class StreamingBitmap {
   readonly totalW: number;
   private segs: SegLayout[];
   private typeAt: Uint8Array;
