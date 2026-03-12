@@ -4,7 +4,6 @@ const DOT_PX = 5;
 const GAP_PX = 1;
 const STEP = DOT_PX + GAP_PX;
 const ROWS = 13;
-const BOARD_W = 700;
 const FPS_DIV = 4;
 
 const COLORS = {
@@ -21,7 +20,7 @@ interface Bitmap {
   totalW: number;
 }
 
-function buildBitmap(segments: Segment[]): Bitmap {
+function buildBitmap(segments: Segment[], boardW: number): Bitmap {
   // Measure widths
   const mc = document.createElement('canvas');
   const mctx = mc.getContext('2d')!;
@@ -33,7 +32,7 @@ function buildBitmap(segments: Segment[]): Bitmap {
   const textW = segs.reduce((a, s) => a + s.w, 0);
 
   // Draw text on offscreen canvas
-  const totalW = BOARD_W + textW;
+  const totalW = boardW + textW;
   const src = document.createElement('canvas');
   src.width = totalW;
   src.height = ROWS;
@@ -44,7 +43,7 @@ function buildBitmap(segments: Segment[]): Bitmap {
   sctx.textBaseline = 'middle';
   sctx.fillStyle = '#fff';
 
-  let drawX = BOARD_W;
+  let drawX = boardW;
   for (const seg of segs) {
     sctx.fillText(seg.text, drawX, ROWS / 2);
     drawX += seg.w;
@@ -52,7 +51,7 @@ function buildBitmap(segments: Segment[]): Bitmap {
 
   // Build type-per-column table
   const typeAt = new Uint8Array(totalW);
-  let tx = BOARD_W;
+  let tx = boardW;
   for (const seg of segs) {
     const t = seg.type === 'yellow' ? 1 : seg.type === 'sep' ? 2 : 0;
     for (let i = 0; i < seg.w && tx + i < totalW; i++) typeAt[tx + i] = t;
@@ -79,26 +78,48 @@ function buildBitmap(segments: Segment[]): Bitmap {
 export class LedBoard {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private boardW: number;
   private bitmap: Bitmap | null = null;
   private pendingBitmap: Bitmap | null = null;
   private offset = 0;
   private frameCount = 0;
   private rafId: number | null = null;
+  private currentSegments: Segment[] = [];
+  private resizeObserver: ResizeObserver;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, width?: number) {
     this.canvas = canvas;
-    this.canvas.width = BOARD_W;
+    this.boardW = width ?? canvas.parentElement?.clientWidth ?? 700;
+    this.canvas.width = this.boardW;
     this.canvas.height = ROWS * STEP + GAP_PX * 2;
     this.ctx = canvas.getContext('2d')!;
+
+    this.resizeObserver = new ResizeObserver(() => this.onResize());
+    this.resizeObserver.observe(canvas.parentElement ?? canvas);
+  }
+
+  private onResize(): void {
+    const newW = this.canvas.parentElement?.clientWidth ?? this.boardW;
+    if (newW === this.boardW || newW === 0) return;
+    this.boardW = newW;
+    this.canvas.width = newW;
+    if (this.currentSegments.length > 0) {
+      const newBitmap = buildBitmap(this.currentSegments, this.boardW);
+      this.bitmap = newBitmap;
+      this.offset = this.boardW - Math.ceil(this.boardW / STEP);
+      this.pendingBitmap = null;
+      this.frameCount = 0;
+    }
   }
 
   setSegments(segments: Segment[]): void {
     if (segments.length === 0) return;
-    const newBitmap = buildBitmap(segments);
+    this.currentSegments = segments;
+    const newBitmap = buildBitmap(segments, this.boardW);
     if (this.bitmap === null) {
       // No current content — start immediately, text entering from right edge
       this.bitmap = newBitmap;
-      this.offset = BOARD_W - Math.ceil(BOARD_W / STEP);
+      this.offset = this.boardW - Math.ceil(this.boardW / STEP);
       this.frameCount = 0;
     } else {
       // Let the current scroll cycle finish, then switch
@@ -119,17 +140,18 @@ export class LedBoard {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
+    this.resizeObserver.disconnect();
   }
 
   private draw(): void {
     const { ctx, canvas } = this;
     ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, BOARD_W, canvas.height);
+    ctx.fillRect(0, 0, this.boardW, canvas.height);
 
     if (!this.bitmap) return;
 
     const { data, totalW } = this.bitmap;
-    const VISIBLE = Math.ceil(BOARD_W / STEP);
+    const VISIBLE = Math.ceil(this.boardW / STEP);
 
     for (let i = 0; i < VISIBLE; i++) {
       const srcCol = (this.offset + i) % totalW;
@@ -170,7 +192,7 @@ export class LedBoard {
           this.bitmap = this.pendingBitmap;
           this.pendingBitmap = null;
         }
-        this.offset = BOARD_W - Math.ceil(BOARD_W / STEP);
+        this.offset = this.boardW - Math.ceil(this.boardW / STEP);
       }
     }
   }
