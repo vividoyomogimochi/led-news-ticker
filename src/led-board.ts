@@ -5,7 +5,7 @@ const GAP_PX = 1;
 const STEP = DOT_PX + GAP_PX;
 const ROWS = 13;
 const BOARD_W = 700;
-const FPS_DIV = 2;
+const FPS_DIV = 4;
 
 const COLORS = {
   normal: { dot: '#e0e0e0', glow: 'rgba(200,200,200,0.35)' },
@@ -24,13 +24,11 @@ interface Bitmap {
 function buildBitmap(segments: Segment[]): Bitmap {
   // Measure widths
   const mc = document.createElement('canvas');
-  mc.width = 4000;
-  mc.height = ROWS;
   const mctx = mc.getContext('2d')!;
   mctx.font = FONT;
   const segs = segments.map((s) => ({
     ...s,
-    w: Math.ceil(mctx.measureText(s.text).width) + 2,
+    w: Math.ceil(mctx.measureText(s.text).width),
   }));
   const textW = segs.reduce((a, s) => a + s.w, 0);
 
@@ -123,7 +121,7 @@ export class LedBoard {
     if (!this.bitmap) return;
 
     const { data, totalW } = this.bitmap;
-    const VISIBLE = Math.ceil(BOARD_W / STEP) + 2;
+    const VISIBLE = Math.ceil(BOARD_W / STEP);
 
     for (let i = 0; i < VISIBLE; i++) {
       const srcCol = (this.offset + i) % totalW;
