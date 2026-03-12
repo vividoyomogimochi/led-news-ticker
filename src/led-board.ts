@@ -4,7 +4,7 @@ const DOT_PX = 5;
 const GAP_PX = 1;
 const STEP = DOT_PX + GAP_PX;
 const ROWS = 13;
-const FPS_DIV = 4;
+const FPS_DIV = 1;
 
 const COLORS = {
   normal: { dot: '#e0e0e0', glow: 'rgba(200,200,200,0.35)' },
@@ -13,7 +13,7 @@ const COLORS = {
   off: '#1e1e1e',
 } as const;
 
-const FONT = `bold ${ROWS - 2}px "Yu Gothic UI","Yu Gothic","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif`;
+const FONT = `${ROWS - 1}px "PixelMplus12",sans-serif`;
 
 interface Bitmap {
   data: Int8Array[];
