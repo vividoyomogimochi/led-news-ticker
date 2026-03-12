@@ -22,8 +22,11 @@ scheduler.register(new SampleSource());
 // ── LED Board ─────────────────────────────────────────────
 const canvas = document.getElementById('ledCanvas') as HTMLCanvasElement;
 const board = new LedBoard(canvas);
-board.start();
 
-scheduler.setOnUpdate((segments) => {
-  board.setSegments(segments);
+document.fonts.load('12px "PixelMplus12"').then(() => {
+  board.start();
+  scheduler.setOnUpdate((segments) => {
+    board.setSegments(segments);
+  });
+  board.setSegments(scheduler.getSegments());
 });
