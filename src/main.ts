@@ -1,23 +1,23 @@
 import { Scheduler } from './scheduler';
 import { LedBoard } from './led-board';
-import { SampleSource } from './sources';
-// import { RssSource } from "./sources"
+// import { SampleSource } from './sources';
+import { RssSource } from './sources';
 
 // ── Sources ──────────────────────────────────────────────
-const scheduler = new Scheduler();
+const scheduler = new Scheduler({ fallbackText: 'LED News Ticker Headline' });
 
-scheduler.register(new SampleSource());
+// scheduler.register(new SampleSource());
 
 // Example: NHK RSS (needs CORS proxy in production)
-// scheduler.register(
-//   new RssSource({
-//     id: "nhk-world",
-//     url: "https://www.nhk.or.jp/rss/news/cat0.xml",
-//     intervalMs: 5 * 60 * 1000,
-//     corsProxy: "https://allorigins.win/raw?url=",
-//     segmentType: "normal",
-//   })
-// )
+scheduler.register(
+  new RssSource({
+    id: 'nhk-world',
+    url: 'https://www.nhk.or.jp/rss/news/cat0.xml',
+    intervalMs: 5 * 60 * 1000,
+    corsProxy: '/proxy?url=',
+    segmentType: 'normal',
+  })
+);
 
 // ── LED Board ─────────────────────────────────────────────
 const canvas = document.getElementById('ledCanvas') as HTMLCanvasElement;
