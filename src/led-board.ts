@@ -14,73 +14,102 @@ const COLORS = {
 } as const;
 
 const FONT = `${ROWS - 1}px "PixelMplus12",sans-serif`;
+const CHUNK_SIZE = 1024;
+const THRESHOLD = 180;
 
-interface Bitmap {
-  data: Int8Array[];
-  totalW: number;
+interface SegLayout {
+  text: string;
+  typeCode: number;
+  startX: number;
+  w: number;
 }
 
-function buildBitmap(segments: Segment[], boardW: number): Bitmap {
-  // Measure widths
-  const mc = document.createElement('canvas');
-  const mctx = mc.getContext('2d')!;
-  mctx.font = FONT;
-  const segs = segments.map((s) => ({
-    ...s,
-    w: Math.ceil(mctx.measureText(s.text).width),
-  }));
-  const textW = segs.reduce((a, s) => a + s.w, 0);
+class StreamingBitmap {
+  readonly totalW: number;
+  private segs: SegLayout[];
+  private typeAt: Uint8Array;
+  private chunks: (Int8Array[] | null)[];
 
-  // Draw text on offscreen canvas
-  const totalW = boardW + textW;
-  const src = document.createElement('canvas');
-  src.width = totalW;
-  src.height = ROWS;
-  const sctx = src.getContext('2d')!;
-  sctx.fillStyle = '#000';
-  sctx.fillRect(0, 0, totalW, ROWS);
-  sctx.font = FONT;
-  sctx.textBaseline = 'middle';
-  sctx.fillStyle = '#fff';
+  constructor(segments: Segment[], boardW: number) {
+    const mc = document.createElement('canvas');
+    const mctx = mc.getContext('2d')!;
+    mctx.font = FONT;
 
-  let drawX = boardW;
-  for (const seg of segs) {
-    sctx.fillText(seg.text, drawX, ROWS / 2);
-    drawX += seg.w;
-  }
+    let x = boardW;
+    this.segs = segments.map((s) => {
+      const w = Math.ceil(mctx.measureText(s.text).width);
+      const seg: SegLayout = {
+        text: s.text,
+        typeCode: s.type === 'yellow' ? 1 : s.type === 'sep' ? 2 : 0,
+        startX: x,
+        w,
+      };
+      x += w;
+      return seg;
+    });
 
-  // Build type-per-column table
-  const typeAt = new Uint8Array(totalW);
-  let tx = boardW;
-  for (const seg of segs) {
-    const t = seg.type === 'yellow' ? 1 : seg.type === 'sep' ? 2 : 0;
-    for (let i = 0; i < seg.w && tx + i < totalW; i++) typeAt[tx + i] = t;
-    tx += seg.w;
-  }
+    this.totalW = x;
 
-  // Binarize pixels
-  const imgd = sctx.getImageData(0, 0, totalW, ROWS).data;
-  const THRESHOLD = 180;
-  const data = new Array<Int8Array>(totalW);
-  for (let col = 0; col < totalW; col++) {
-    const col_data = new Int8Array(ROWS);
-    const t = typeAt[col];
-    for (let row = 0; row < ROWS; row++) {
-      const idx = (row * totalW + col) * 4;
-      col_data[row] = imgd[idx] > THRESHOLD ? t : -1;
+    this.typeAt = new Uint8Array(this.totalW);
+    for (const seg of this.segs) {
+      for (let i = 0; i < seg.w && seg.startX + i < this.totalW; i++) {
+        this.typeAt[seg.startX + i] = seg.typeCode;
+      }
     }
-    data[col] = col_data;
+
+    this.chunks = new Array(Math.ceil(this.totalW / CHUNK_SIZE)).fill(null);
   }
 
-  return { data, totalW };
+  getColumn(col: number): Int8Array {
+    const chunkIdx = Math.floor(col / CHUNK_SIZE);
+    if (this.chunks[chunkIdx] === null) {
+      this.chunks[chunkIdx] = this.renderChunk(chunkIdx);
+    }
+    return this.chunks[chunkIdx]![col - chunkIdx * CHUNK_SIZE];
+  }
+
+  private renderChunk(chunkIdx: number): Int8Array[] {
+    const startCol = chunkIdx * CHUNK_SIZE;
+    const chunkW = Math.min(CHUNK_SIZE, this.totalW - startCol);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = chunkW;
+    canvas.height = ROWS;
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, chunkW, ROWS);
+    ctx.font = FONT;
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+
+    for (const seg of this.segs) {
+      const drawX = seg.startX - startCol;
+      if (drawX + seg.w > 0 && drawX < chunkW) {
+        ctx.fillText(seg.text, drawX, ROWS / 2);
+      }
+    }
+
+    const imgd = ctx.getImageData(0, 0, chunkW, ROWS).data;
+    const data: Int8Array[] = new Array(chunkW);
+    for (let col = 0; col < chunkW; col++) {
+      const t = this.typeAt[startCol + col];
+      const colData = new Int8Array(ROWS);
+      for (let row = 0; row < ROWS; row++) {
+        const idx = (row * chunkW + col) * 4;
+        colData[row] = imgd[idx] > THRESHOLD ? t : -1;
+      }
+      data[col] = colData;
+    }
+    return data;
+  }
 }
 
 export class LedBoard {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private boardW: number;
-  private bitmap: Bitmap | null = null;
-  private pendingBitmap: Bitmap | null = null;
+  private bitmap: StreamingBitmap | null = null;
+  private pendingBitmap: StreamingBitmap | null = null;
   private offset = 0;
   private frameCount = 0;
   private rafId: number | null = null;
@@ -104,8 +133,7 @@ export class LedBoard {
     this.boardW = newW;
     this.canvas.width = newW;
     if (this.currentSegments.length > 0) {
-      const newBitmap = buildBitmap(this.currentSegments, this.boardW);
-      this.bitmap = newBitmap;
+      this.bitmap = new StreamingBitmap(this.currentSegments, this.boardW);
       this.offset = this.boardW - Math.ceil(this.boardW / STEP);
       this.pendingBitmap = null;
       this.frameCount = 0;
@@ -115,14 +143,12 @@ export class LedBoard {
   setSegments(segments: Segment[]): void {
     if (segments.length === 0) return;
     this.currentSegments = segments;
-    const newBitmap = buildBitmap(segments, this.boardW);
+    const newBitmap = new StreamingBitmap(segments, this.boardW);
     if (this.bitmap === null) {
-      // No current content — start immediately, text entering from right edge
       this.bitmap = newBitmap;
       this.offset = this.boardW - Math.ceil(this.boardW / STEP);
       this.frameCount = 0;
     } else {
-      // Let the current scroll cycle finish, then switch
       this.pendingBitmap = newBitmap;
     }
   }
@@ -150,18 +176,19 @@ export class LedBoard {
 
     if (!this.bitmap) return;
 
-    const { data, totalW } = this.bitmap;
+    const { totalW } = this.bitmap;
     const VISIBLE = Math.ceil(this.boardW / STEP);
 
     for (let i = 0; i < VISIBLE; i++) {
       const srcCol = (this.offset + i) % totalW;
       const px = i * STEP;
 
+      const col = this.bitmap.getColumn(srcCol);
       for (let row = 0; row < ROWS; row++) {
         const py = GAP_PX + row * STEP;
         const cx = px + DOT_PX / 2;
         const cy = py + DOT_PX / 2;
-        const v = data[srcCol][row];
+        const v = col[row];
 
         if (v >= 0) {
           const key = v === 1 ? 'yellow' : v === 2 ? 'sep' : 'normal';
@@ -187,7 +214,6 @@ export class LedBoard {
       this.frameCount = 0;
       this.offset = (this.offset + 1) % totalW;
       if (this.offset === 0) {
-        // Cycle complete — apply pending bitmap if any
         if (this.pendingBitmap !== null) {
           this.bitmap = this.pendingBitmap;
           this.pendingBitmap = null;
