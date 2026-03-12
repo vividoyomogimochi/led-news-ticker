@@ -4,7 +4,7 @@ const DOT_PX = 5;
 const GAP_PX = 1;
 const STEP = DOT_PX + GAP_PX;
 const ROWS = 13;
-const FPS_DIV = 1;
+const FPS_DIV = 4;
 
 const COLORS = {
   normal: { dot: '#e0e0e0', glow: 'rgba(200,200,200,0.35)' },
