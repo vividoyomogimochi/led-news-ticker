@@ -54,7 +54,7 @@
 
       // Apply background-image from query param
       const _params = new URLSearchParams(location.search);
-      const _bg = _params.get('bg');
+      const _bg = _params.get('bg') || '/images/wall.jpg';
       if (_bg) {
         document.body.style.backgroundImage = `url("${_bg.replace(/"/g, '%22')}")`;
       }
