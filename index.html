@@ -51,6 +51,13 @@
       if (iframe && location.search) {
         iframe.src = '/ticker/' + location.search;
       }
+
+      // Apply background-image from query param
+      const _params = new URLSearchParams(location.search);
+      const _bg = _params.get('bg');
+      if (_bg) {
+        document.body.style.backgroundImage = `url("${_bg.replace(/"/g, '%22')}")`;
+      }
       window.addEventListener('message', (e) => {
         if (e.data?.type === 'ticker-height') {
           if (iframe) iframe.style.height = e.data.height + 'px';
