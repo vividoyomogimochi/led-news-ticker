@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LED News Ticker</title>
+    <style>
+      @font-face {
+        font-family: 'PixelMplus12';
+        src: url('/fonts/PixelMplus12-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #1a1a1a;
+        margin: 0;
+        font-family: sans-serif;
+      }
+      .board {
+        background: #0a0a0a;
+        overflow: hidden;
+        width: 100%;
+      }
+      .ticker-wrap {
+        background: #000;
+        padding: 8px 0;
+      }
+      #ledCanvas { display: block; }
+    </style>
+  </head>
+  <body>
+    <div class="board">
+      <div class="ticker-wrap">
+        <canvas id="ledCanvas"></canvas>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+      // Notify parent frame of our scroll height so the iframe can resize to fit
+      const ro = new ResizeObserver(() => {
+        const h = document.body.scrollHeight;
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: 'ticker-height', height: h }, '*');
+        }
+      });
+      ro.observe(document.body);
+    </script>
+  </body>
+</html>
