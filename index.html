@@ -59,6 +59,25 @@
       if (_bg) {
         document.body.style.backgroundImage = `url("${_bg.replace(/"/g, '%22')}")`;
       }
+
+      // Background audio — no crossorigin attribute, so CORS is not enforced
+      const _audioUrl = _params.get('audio');
+      if (_audioUrl) {
+        const audio = new Audio(_audioUrl);
+        audio.loop = true;
+        audio.volume = 0.5;
+        audio.play().catch(() => {
+          // Autoplay blocked — play on first user interaction
+          const resume = () => {
+            audio.play().catch(() => {});
+            document.removeEventListener('click', resume);
+            document.removeEventListener('keydown', resume);
+          };
+          document.addEventListener('click', resume);
+          document.addEventListener('keydown', resume);
+        });
+      }
+
       window.addEventListener('message', (e) => {
         if (e.data?.type === 'ticker-height') {
           if (iframe) iframe.style.height = e.data.height + 'px';

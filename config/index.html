@@ -347,6 +347,12 @@
         <p class="hint">ラッパーページの背景に適用されます</p>
       </div>
 
+      <div class="field">
+        <label for="rss-audio">背景音声 URL</label>
+        <input id="rss-audio" type="url" placeholder="https://example.com/bgm.mp3" />
+        <p class="hint">ループ再生されます</p>
+      </div>
+
       <button type="submit">ティッカーを開く →</button>
     </form>
 
@@ -363,6 +369,12 @@
         <label for="ws-bg">背景画像 URL</label>
         <input id="ws-bg" type="url" placeholder="https://example.com/bg.jpg" />
         <p class="hint">ラッパーページの背景に適用されます</p>
+      </div>
+
+      <div class="field">
+        <label for="ws-audio">背景音声 URL</label>
+        <input id="ws-audio" type="url" placeholder="https://example.com/bgm.mp3" />
+        <p class="hint">ループ再生されます</p>
       </div>
 
       <button type="submit">ティッカーを開く →</button>
@@ -426,12 +438,16 @@
           if (url) p.set('url', url);
           if (interval !== 5) p.set('interval', String(interval * 60 * 1000));
           if (bg) p.set('bg', bg);
+          const audio = document.getElementById('rss-audio').value.trim();
+          if (audio) p.set('audio', audio);
         } else {
           const url = document.getElementById('ws-url').value.trim();
           const bg = document.getElementById('ws-bg').value.trim();
+          const audio = document.getElementById('ws-audio').value.trim();
           p.set('type', 'ws');
           if (url) p.set('url', url);
           if (bg) p.set('bg', bg);
+          if (audio) p.set('audio', audio);
         }
         return p;
       }
