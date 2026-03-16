@@ -1,4 +1,5 @@
 import type { Segment } from './sources';
+import type { FontAtlas } from './font-atlas';
 
 const DOT_PX = 5;
 const GAP_PX = 1;
@@ -13,96 +14,79 @@ const COLORS = {
   off: '#1e1e1e',
 } as const;
 
-const FONT = `${ROWS - 1}px "PixelMplus12",sans-serif`;
-const CHUNK_SIZE = 1024;
-const THRESHOLD = 180;
-
-interface SegLayout {
-  text: string;
+interface CharEntry {
+  codepoint: number;
   typeCode: number;
   startX: number;
-  w: number;
+  width: number;
 }
 
 export class StreamingBitmap {
   readonly totalW: number;
-  private segs: SegLayout[];
-  private typeAt: Uint8Array;
-  private chunks: (Int8Array[] | null)[];
+  private chars: CharEntry[];
+  private atlas: FontAtlas;
+  private columnCache: Map<number, Int8Array> = new Map();
 
-  constructor(segments: Segment[], boardW: number) {
-    const mc = document.createElement('canvas');
-    const mctx = mc.getContext('2d')!;
-    mctx.font = FONT;
+  constructor(segments: Segment[], boardW: number, atlas: FontAtlas) {
+    this.atlas = atlas;
 
     let x = boardW;
-    this.segs = segments.map((s) => {
-      const w = Math.ceil(mctx.measureText(s.text).width);
-      const seg: SegLayout = {
-        text: s.text,
-        typeCode: s.type === 'yellow' ? 1 : s.type === 'sep' ? 2 : 0,
-        startX: x,
-        w,
-      };
-      x += w;
-      return seg;
-    });
+    this.chars = [];
 
-    this.totalW = x;
-
-    this.typeAt = new Uint8Array(this.totalW);
-    for (const seg of this.segs) {
-      for (let i = 0; i < seg.w && seg.startX + i < this.totalW; i++) {
-        this.typeAt[seg.startX + i] = seg.typeCode;
+    for (const seg of segments) {
+      const typeCode = seg.type === 'yellow' ? 1 : seg.type === 'sep' ? 2 : 0;
+      for (const ch of seg.text) {
+        const cp = ch.codePointAt(0)!;
+        const glyph = atlas.getGlyph(cp);
+        const w = glyph ? glyph.width : 0;
+        if (w > 0) {
+          this.chars.push({ codepoint: cp, typeCode, startX: x, width: w });
+          x += w;
+        }
       }
     }
 
-    this.chunks = new Array(Math.ceil(this.totalW / CHUNK_SIZE)).fill(null);
+    this.totalW = x;
   }
 
   getColumn(col: number): Int8Array {
-    const chunkIdx = Math.floor(col / CHUNK_SIZE);
-    if (this.chunks[chunkIdx] === null) {
-      this.chunks[chunkIdx] = this.renderChunk(chunkIdx);
+    const cached = this.columnCache.get(col);
+    if (cached) return cached;
+
+    const colData = new Int8Array(ROWS).fill(-1);
+
+    // Binary search to find which character contains this column
+    const entry = this.findChar(col);
+    if (entry) {
+      const localCol = col - entry.startX;
+      const bits = this.atlas.getColumnBits(entry.codepoint, localCol);
+      for (let row = 0; row < ROWS; row++) {
+        if ((bits >> row) & 1) {
+          colData[row] = entry.typeCode;
+        }
+      }
     }
-    return this.chunks[chunkIdx]![col - chunkIdx * CHUNK_SIZE];
+
+    this.columnCache.set(col, colData);
+    return colData;
   }
 
-  private renderChunk(chunkIdx: number): Int8Array[] {
-    const startCol = chunkIdx * CHUNK_SIZE;
-    const chunkW = Math.min(CHUNK_SIZE, this.totalW - startCol);
-
-    const PAD = 4;
-    const renderH = ROWS + PAD * 2;
-    const canvas = document.createElement('canvas');
-    canvas.width = chunkW;
-    canvas.height = renderH;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, chunkW, renderH);
-    ctx.font = FONT;
-    ctx.textBaseline = 'bottom';
-    ctx.fillStyle = '#fff';
-
-    for (const seg of this.segs) {
-      const drawX = seg.startX - startCol;
-      if (drawX + seg.w > 0 && drawX < chunkW) {
-        ctx.fillText(seg.text, drawX, PAD + ROWS);
+  private findChar(col: number): CharEntry | null {
+    const chars = this.chars;
+    let lo = 0;
+    let hi = chars.length - 1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >>> 1;
+      const entry = chars[mid];
+      if (col < entry.startX) {
+        hi = mid - 1;
+      } else if (col >= entry.startX + entry.width) {
+        lo = mid + 1;
+      } else {
+        return entry;
       }
     }
-
-    const imgd = ctx.getImageData(0, 0, chunkW, renderH).data;
-    const data: Int8Array[] = new Array(chunkW);
-    for (let col = 0; col < chunkW; col++) {
-      const t = this.typeAt[startCol + col];
-      const colData = new Int8Array(ROWS);
-      for (let row = 0; row < ROWS; row++) {
-        const idx = ((PAD + row) * chunkW + col) * 4;
-        colData[row] = imgd[idx] > THRESHOLD ? t : -1;
-      }
-      data[col] = colData;
-    }
-    return data;
+    return null;
   }
 }
 
@@ -110,6 +94,7 @@ export class LedBoard {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private boardW: number;
+  private atlas: FontAtlas;
   private bitmap: StreamingBitmap | null = null;
   private pendingBitmap: StreamingBitmap | null = null;
   private offset = 0;
@@ -118,8 +103,9 @@ export class LedBoard {
   private currentSegments: Segment[] = [];
   private resizeObserver: ResizeObserver;
 
-  constructor(canvas: HTMLCanvasElement, width?: number) {
+  constructor(canvas: HTMLCanvasElement, atlas: FontAtlas, width?: number) {
     this.canvas = canvas;
+    this.atlas = atlas;
     this.boardW = width ?? canvas.parentElement?.clientWidth ?? 700;
     this.canvas.width = this.boardW;
     this.canvas.height = ROWS * STEP + GAP_PX * 2;
@@ -135,7 +121,7 @@ export class LedBoard {
     this.boardW = newW;
     this.canvas.width = newW;
     if (this.currentSegments.length > 0) {
-      this.bitmap = new StreamingBitmap(this.currentSegments, this.boardW);
+      this.bitmap = new StreamingBitmap(this.currentSegments, this.boardW, this.atlas);
       this.offset = this.boardW - Math.ceil(this.boardW / STEP);
       this.pendingBitmap = null;
     }
@@ -144,7 +130,7 @@ export class LedBoard {
   setSegments(segments: Segment[]): void {
     if (segments.length === 0) return;
     this.currentSegments = segments;
-    const newBitmap = new StreamingBitmap(segments, this.boardW);
+    const newBitmap = new StreamingBitmap(segments, this.boardW, this.atlas);
     if (this.bitmap === null) {
       this.bitmap = newBitmap;
       this.offset = this.boardW - Math.ceil(this.boardW / STEP);

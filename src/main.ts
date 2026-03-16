@@ -1,5 +1,6 @@
 import { Scheduler } from './scheduler';
 import { LedBoard } from './led-board';
+import { FontAtlas } from './font-atlas';
 import { RssSource, WebSocketSource } from './sources';
 import type { Segment, SegmentType } from './sources';
 
@@ -62,9 +63,9 @@ if (sourceUrl && sourceType === 'ws') {
 
 // ── LED Board ─────────────────────────────────────────────
 const canvas = document.getElementById('ledCanvas') as HTMLCanvasElement;
-const board = new LedBoard(canvas);
 
-document.fonts.load('12px "PixelMplus12"').then(() => {
+FontAtlas.load('/fonts/PixelMplus12-atlas.bin').then((atlas) => {
+  const board = new LedBoard(canvas, atlas);
   board.start();
   scheduler.setOnUpdate((segments) => {
     board.setSegments(segments);

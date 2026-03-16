@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build:atlas": "node scripts/build-font-atlas.mjs",
     "build": "tsc && tsc -p tsconfig.node.json && vite build",
     "preview": "vite preview",
     "deploy": "pnpm run build && wrangler pages deploy dist",
