@@ -22,7 +22,7 @@ pnpm build
 ブラウザのフォントレンダリングはエンジンによって異なり、Canvas 2D の `fillText` で同じ字体を描画しても iOS Safari・Android Firefox などではアンチエイリアスのかかり方が違う。これを回避するため、**全グリフのビットマップをビルド時に生成**してバイナリファイルとして配布する。
 
 ```sh
-pnpm build:atlas   # public/fonts/PixelMplus12-atlas.bin を生成
+pnpm build:atlas   # public/fonts/led-ticker-font-atlas.bin を生成
 ```
 
 `scripts/build-font-atlas.mjs` が node-canvas（Cairo）を使い `antialias=none` でフォントをラスタライズする。Cairo のピクセルフォント描画はアンチエイリアスなしで完全なバイナリ出力（0か255のみ）になるため、どのブラウザで表示しても同一のドットパターンが得られる。
@@ -30,6 +30,7 @@ pnpm build:atlas   # public/fonts/PixelMplus12-atlas.bin を生成
 - 対象グリフ: ASCII・かな・JIS第1-2水準漢字など 22,340 文字
 - ファイルサイズ: 約 676KB（gzip 約 241KB）
 - フォーマット: `uint32 グリフ数` + グリフごとに `uint32 コードポイント`, `uint8 幅`, `幅 × uint16 列ビットマップ`（bit *i* = 行 *i* が ON）
+- ライセンス: PixelMplus12-Regular.ttf のラスタライズ派生物のため **SIL Open Font License 1.1** が適用される
 
 ### ランタイム描画
 

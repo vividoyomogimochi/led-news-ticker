@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FONT_PATH = resolve(__dirname, '../public/fonts/PixelMplus12-Regular.ttf');
-const OUT_PATH = resolve(__dirname, '../public/fonts/PixelMplus12-atlas.bin');
+const OUT_PATH = resolve(__dirname, '../public/fonts/led-ticker-font-atlas.bin');
 
 registerFont(FONT_PATH, { family: 'PixelMplus12' });
 

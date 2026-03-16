@@ -64,7 +64,7 @@ if (sourceUrl && sourceType === 'ws') {
 // ── LED Board ─────────────────────────────────────────────
 const canvas = document.getElementById('ledCanvas') as HTMLCanvasElement;
 
-FontAtlas.load('/fonts/PixelMplus12-atlas.bin').then((atlas) => {
+FontAtlas.load('/fonts/led-ticker-font-atlas.bin').then((atlas) => {
   const board = new LedBoard(canvas, atlas);
   board.start();
   scheduler.setOnUpdate((segments) => {
