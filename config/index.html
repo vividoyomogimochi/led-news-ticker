@@ -147,6 +147,50 @@
         text-transform: uppercase;
       }
 
+      input[type='color'] {
+        width: 40px;
+        height: 40px;
+        padding: 2px;
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        background: var(--surface);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      input[type='color']::-webkit-color-swatch-wrapper { padding: 2px; }
+      input[type='color']::-webkit-color-swatch { border: none; border-radius: 1px; }
+
+      .color-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .color-row label {
+        min-width: 70px;
+        margin: 0;
+      }
+
+      .color-row input[type='text'] {
+        flex: 1;
+        font-size: 0.9rem;
+        padding: 6px 8px;
+      }
+
+      .color-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .color-group-title {
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        color: var(--amber-dim);
+        text-transform: uppercase;
+      }
+
       input,
       select {
         background: var(--surface);
@@ -556,6 +600,28 @@
         <p class="hint">ループ再生されます</p>
       </div>
 
+      <hr class="divider" />
+
+      <div class="color-group">
+        <p class="color-group-title">LED カラー（任意）</p>
+        <div class="color-row">
+          <label for="rss-normalColor">通常</label>
+          <input id="rss-normalColor" type="color" value="#e0e0e0" />
+          <input id="rss-normalColor-hex" type="text" placeholder="#e0e0e0" />
+        </div>
+        <div class="color-row">
+          <label for="rss-accentColor">アクセント</label>
+          <input id="rss-accentColor" type="color" value="#ffdd33" />
+          <input id="rss-accentColor-hex" type="text" placeholder="#ffdd33" />
+        </div>
+        <div class="color-row">
+          <label for="rss-sepColor">区切り</label>
+          <input id="rss-sepColor" type="color" value="#cc2200" />
+          <input id="rss-sepColor-hex" type="text" placeholder="#cc2200" />
+        </div>
+        <p class="hint">空欄でデフォルト色を使用</p>
+      </div>
+
       <button type="submit">ティッカーを開く →</button>
     </form>
 
@@ -578,6 +644,28 @@
         <label for="ws-audio">BGM URL</label>
         <input id="ws-audio" type="text" placeholder="https://example.com/audio.mp3" />
         <p class="hint">ループ再生されます</p>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="color-group">
+        <p class="color-group-title">LED カラー（任意）</p>
+        <div class="color-row">
+          <label for="ws-normalColor">通常</label>
+          <input id="ws-normalColor" type="color" value="#e0e0e0" />
+          <input id="ws-normalColor-hex" type="text" placeholder="#e0e0e0" />
+        </div>
+        <div class="color-row">
+          <label for="ws-accentColor">アクセント</label>
+          <input id="ws-accentColor" type="color" value="#ffdd33" />
+          <input id="ws-accentColor-hex" type="text" placeholder="#ffdd33" />
+        </div>
+        <div class="color-row">
+          <label for="ws-sepColor">区切り</label>
+          <input id="ws-sepColor" type="color" value="#cc2200" />
+          <input id="ws-sepColor-hex" type="text" placeholder="#cc2200" />
+        </div>
+        <p class="hint">空欄でデフォルト色を使用</p>
       </div>
 
       <button type="submit">ティッカーを開く →</button>
@@ -607,6 +695,26 @@
       const previewEl = document.getElementById('preview');
       let activeTab = 'theme';
 
+      // ── Color field sync ──
+      const COLOR_DEFAULTS = { normalColor: '#e0e0e0', accentColor: '#ffdd33', sepColor: '#cc2200' };
+      const COLOR_KEYS = ['normalColor', 'accentColor', 'sepColor'];
+      const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+      for (const prefix of ['rss', 'ws']) {
+        for (const key of COLOR_KEYS) {
+          const picker = document.getElementById(prefix + '-' + key);
+          const hex = document.getElementById(prefix + '-' + key + '-hex');
+          picker.addEventListener('input', () => {
+            hex.value = picker.value === COLOR_DEFAULTS[key] ? '' : picker.value;
+            updatePreview();
+          });
+          hex.addEventListener('input', () => {
+            if (HEX_RE.test(hex.value)) picker.value = hex.value;
+            updatePreview();
+          });
+        }
+      }
+
       // Inject WS data info block after preview
       const wsInfoTemplate = document.getElementById('ws-data-info');
       const wsInfoEl = wsInfoTemplate.content.firstElementChild.cloneNode(true);
@@ -632,6 +740,13 @@
         });
       });
 
+      function appendColorParams(p, prefix) {
+        for (const key of COLOR_KEYS) {
+          const hex = document.getElementById(prefix + '-' + key + '-hex').value.trim();
+          if (hex && HEX_RE.test(hex)) p.set(key, hex);
+        }
+      }
+
       function buildParams() {
         const p = new URLSearchParams();
         if (activeTab === 'theme') return p;
@@ -645,6 +760,7 @@
           if (bg) p.set('bg', bg);
           const audio = document.getElementById('rss-audio').value.trim();
           if (audio) p.set('audio', audio);
+          appendColorParams(p, 'rss');
         } else {
           const url = document.getElementById('ws-url').value.trim();
           const bg = document.getElementById('ws-bg').value.trim();
@@ -653,6 +769,7 @@
           if (url) p.set('url', url);
           if (bg) p.set('bg', bg);
           if (audio) p.set('audio', audio);
+          appendColorParams(p, 'ws');
         }
         return p;
       }
@@ -859,6 +976,20 @@
           } else {
             document.getElementById('ws-bg').value = dp.bg || '';
             document.getElementById('ws-audio').value = dp.audio || '';
+          }
+        }
+        // Pre-fill color params from both source and display
+        const allParams = { ...selectedSource?.params, ...selectedDisplay?.params };
+        for (const key of COLOR_KEYS) {
+          const val = allParams[key] || '';
+          const picker = document.getElementById(targetTab + '-' + key);
+          const hex = document.getElementById(targetTab + '-' + key + '-hex');
+          if (val && HEX_RE.test(val)) {
+            picker.value = val;
+            hex.value = val;
+          } else {
+            picker.value = COLOR_DEFAULTS[key];
+            hex.value = '';
           }
         }
 
