@@ -319,6 +319,162 @@
         font-size: 0.8rem;
         color: var(--amber);
       }
+
+      /* ── Theme grid ── */
+      .theme-section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .theme-section-title {
+        font-size: 0.72rem;
+        letter-spacing: 0.15em;
+        color: var(--amber-dim);
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 6px;
+      }
+
+      .theme-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .theme-card {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .theme-card:hover {
+        border-color: var(--amber-dim);
+        box-shadow: 0 0 10px var(--amber-glow);
+      }
+
+      .theme-card.selected {
+        border-color: var(--amber);
+        box-shadow: 0 0 10px var(--amber-glow);
+      }
+
+      .theme-card.selected .theme-card-label {
+        color: var(--amber);
+      }
+
+      .theme-card-thumb {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        background: var(--surface);
+        overflow: hidden;
+      }
+
+      .theme-card-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.38);
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+      }
+
+      .theme-card:hover .theme-card-overlay,
+      .theme-card.playing .theme-card-overlay {
+        opacity: 1;
+      }
+
+      .theme-card-overlay span {
+        display: flex;
+        filter:
+          drop-shadow(0 0 6px rgba(255, 170, 0, 0.9))
+          drop-shadow(0 0 16px rgba(255, 170, 0, 0.5));
+      }
+
+      .theme-card-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .theme-card-body {
+        padding: 7px 9px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .theme-card-label {
+        font-size: 0.78rem;
+        letter-spacing: 0.06em;
+        color: var(--amber-dim);
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .theme-card:hover .theme-card-label {
+        color: var(--amber);
+      }
+
+      .theme-empty {
+        grid-column: 1 / -1;
+        color: var(--amber-dim);
+        font-size: 0.85rem;
+        text-align: center;
+        padding: 24px 0;
+        letter-spacing: 0.05em;
+      }
+
+      .theme-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .theme-btn {
+        flex: 1;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        color: var(--amber-dim);
+        cursor: pointer;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        padding: 11px;
+        text-transform: uppercase;
+        transition:
+          border-color 0.2s,
+          color 0.2s,
+          box-shadow 0.2s,
+          text-shadow 0.2s;
+      }
+
+      .theme-btn-primary {
+        border-color: var(--amber-dim);
+        color: var(--amber);
+      }
+
+      .theme-btn:hover {
+        border-color: var(--amber);
+        color: var(--amber);
+        box-shadow:
+          0 0 12px var(--amber-glow),
+          inset 0 0 12px rgba(255, 170, 0, 0.04);
+        text-shadow: 0 0 8px var(--amber-glow-strong);
+      }
     </style>
   </head>
   <body>
@@ -328,12 +484,31 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" data-tab="rss">RSS</button>
+      <button class="tab-btn active" data-tab="theme">Theme</button>
+      <button class="tab-btn" data-tab="rss">RSS</button>
       <button class="tab-btn" data-tab="ws">WebSocket</button>
     </div>
 
+    <!-- Theme -->
+    <div class="panel active" id="panel-theme">
+      <div class="theme-section">
+        <p class="theme-section-title">Source</p>
+        <select id="theme-source-select"></select>
+      </div>
+      <div class="theme-section">
+        <p class="theme-section-title">Display</p>
+        <div class="theme-grid" id="theme-display-grid">
+          <p class="theme-empty">読み込み中...</p>
+        </div>
+      </div>
+      <div class="theme-actions">
+        <button class="theme-btn" id="theme-customize-btn" type="button">カスタマイズ →</button>
+        <button class="theme-btn theme-btn-primary" id="theme-open-btn" type="button">ティッカーを開く →</button>
+      </div>
+    </div>
+
     <!-- RSS -->
-    <form class="panel active" id="panel-rss">
+    <form class="panel" id="panel-rss">
       <div class="field">
         <label for="rss-url">フィード URL</label>
         <input id="rss-url" type="url" placeholder="https://example.com/feed.xml" />
@@ -410,7 +585,7 @@
 
     <script>
       const previewEl = document.getElementById('preview');
-      let activeTab = 'rss';
+      let activeTab = 'theme';
 
       // Inject WS data info block after preview
       const wsInfoTemplate = document.getElementById('ws-data-info');
@@ -433,11 +608,13 @@
             .forEach((p) => p.classList.toggle('active', p.id === 'panel-' + activeTab));
           updatePreview();
           syncDataInfo();
+          if (activeTab === 'theme') loadThemes();
         });
       });
 
       function buildParams() {
         const p = new URLSearchParams();
+        if (activeTab === 'theme') return p;
         if (activeTab === 'rss') {
           const url = document.getElementById('rss-url').value.trim();
           const interval = Number(document.getElementById('rss-interval').value) || 5;
@@ -461,10 +638,212 @@
       }
 
       function updatePreview() {
+        if (activeTab === 'theme') {
+          const qs = buildThemeParams().toString();
+          const href = '/' + (qs ? '?' + qs : '');
+          previewEl.innerHTML = '<a href="' + href + '">' + href + '</a>';
+          return;
+        }
         const qs = buildParams().toString();
         const href = '/' + (qs ? '?' + qs : '');
         previewEl.innerHTML = '<a href="' + href + '">' + href + '</a>';
       }
+
+      // ── Theme panel ──
+
+      let themesLoaded = false;
+      let currentAudio = null;
+      let currentAudioTimer = null;
+      let currentAudioFade = null;
+      let currentOverlayIcon = null;
+      let selectedSource = null;
+      let selectedDisplay = null;
+
+      function stopCurrentAudio() {
+        if (currentAudioTimer) { clearTimeout(currentAudioTimer); currentAudioTimer = null; }
+        if (currentAudioFade) { clearInterval(currentAudioFade); currentAudioFade = null; }
+        if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+        if (currentOverlayIcon) { currentOverlayIcon.innerHTML = ICON_PLAY; currentOverlayIcon = null; }
+        document.querySelectorAll('.theme-card.playing').forEach((c) => c.classList.remove('playing'));
+      }
+
+      function playPreview(audioUrl, card, iconEl) {
+        stopCurrentAudio();
+        const audio = new Audio(audioUrl);
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+        currentAudio = audio;
+        currentOverlayIcon = iconEl;
+        if (iconEl) iconEl.innerHTML = ICON_STOP;
+        card.classList.add('playing');
+
+        currentAudioTimer = setTimeout(() => {
+          currentAudioTimer = null;
+          let vol = audio.volume;
+          const step = vol / 20;
+          currentAudioFade = setInterval(() => {
+            vol = Math.max(0, vol - step);
+            if (currentAudio) currentAudio.volume = vol;
+            if (vol <= 0) {
+              clearInterval(currentAudioFade);
+              currentAudioFade = null;
+              if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+              if (currentOverlayIcon) { currentOverlayIcon.innerHTML = ICON_PLAY; currentOverlayIcon = null; }
+              card.classList.remove('playing');
+            }
+          }, 50);
+        }, 3000);
+      }
+
+      function buildThemeParams() {
+        const p = new URLSearchParams();
+        for (const [k, v] of Object.entries(selectedSource?.params || {})) p.set(k, String(v));
+        for (const [k, v] of Object.entries(selectedDisplay?.params || {})) p.set(k, String(v));
+        return p;
+      }
+
+      const ICON_PLAY = '<svg width="36" height="36" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><polygon points="4,2 16,9 4,16" fill="#ffaa00"/></svg>';
+      const ICON_STOP = '<svg width="36" height="36" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="12" height="12" fill="#ffaa00"/></svg>';
+
+      function makeThemeCard(theme, gridId, getSelected, setSelected) {
+        const audioUrl = theme.params?.audio;
+
+        const card = document.createElement('div');
+        card.className = 'theme-card';
+
+        const thumb = document.createElement('div');
+        thumb.className = 'theme-card-thumb';
+        const img = document.createElement('img');
+        img.src = '/themes/' + theme.id + '.png';
+        img.alt = '';
+        img.loading = 'lazy';
+        thumb.appendChild(img);
+
+        let overlayIcon = null;
+        if (audioUrl) {
+          const overlay = document.createElement('div');
+          overlay.className = 'theme-card-overlay';
+          overlayIcon = document.createElement('span');
+          overlayIcon.innerHTML = ICON_PLAY;
+          overlay.appendChild(overlayIcon);
+          thumb.appendChild(overlay);
+        }
+
+        const body = document.createElement('div');
+        body.className = 'theme-card-body';
+        const label = document.createElement('span');
+        label.className = 'theme-card-label';
+        label.textContent = theme.label;
+        body.appendChild(label);
+
+        card.appendChild(thumb);
+        card.appendChild(body);
+
+        card.addEventListener('click', () => {
+          const wasSelected = getSelected() === theme;
+          const isPlaying = card.classList.contains('playing');
+
+          if (wasSelected && isPlaying) {
+            stopCurrentAudio();
+            return;
+          }
+
+          document.querySelectorAll('#' + gridId + ' .theme-card').forEach((c) => c.classList.remove('selected'));
+          stopCurrentAudio();
+          card.classList.add('selected');
+          setSelected(theme);
+          if (audioUrl) playPreview(audioUrl, card, overlayIcon);
+          updatePreview();
+        });
+
+        return card;
+      }
+
+      async function loadThemes() {
+        if (themesLoaded) return;
+        themesLoaded = true;
+
+        const sourceSelect = document.getElementById('theme-source-select');
+        const displayGrid = document.getElementById('theme-display-grid');
+        try {
+          const res = await fetch('/themes.json');
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+
+          const sources = data.sources || [];
+          const displays = data.displays || [];
+
+          sourceSelect.innerHTML = '';
+          displayGrid.innerHTML = '';
+
+          if (sources.length) {
+            for (const theme of sources) {
+              const opt = document.createElement('option');
+              opt.value = theme.id;
+              opt.textContent = theme.label;
+              sourceSelect.appendChild(opt);
+            }
+            selectedSource = sources[0];
+            sourceSelect.addEventListener('change', () => {
+              selectedSource = sources.find((s) => s.id === sourceSelect.value) || null;
+              updatePreview();
+            });
+          } else {
+            const opt = document.createElement('option');
+            opt.textContent = 'ソースが登録されていません';
+            opt.disabled = true;
+            sourceSelect.appendChild(opt);
+          }
+
+          if (displays.length) {
+            for (const theme of displays) {
+              displayGrid.appendChild(makeThemeCard(theme, 'theme-display-grid', () => selectedDisplay, (v) => { selectedDisplay = v; }));
+            }
+            selectedDisplay = displays[0];
+            displayGrid.firstElementChild.classList.add('selected');
+          } else {
+            displayGrid.innerHTML = '<p class="theme-empty">ディスプレイが登録されていません</p>';
+          }
+          updatePreview();
+        } catch {
+          sourceSelect.innerHTML = '<option disabled>読み込みに失敗しました</option>';
+          displayGrid.innerHTML = '';
+        }
+      }
+
+      document.getElementById('theme-open-btn').addEventListener('click', () => {
+        const qs = buildThemeParams().toString();
+        location.href = '/' + (qs ? '?' + qs : '');
+      });
+
+      document.getElementById('theme-customize-btn').addEventListener('click', () => {
+        const srcType = selectedSource?.params?.type;
+        const targetTab = srcType === 'ws' ? 'ws' : 'rss';
+
+        // Pre-fill source params
+        if (selectedSource) {
+          const sp = selectedSource.params;
+          if (targetTab === 'rss') {
+            document.getElementById('rss-url').value = sp.url || '';
+            if (sp.interval) document.getElementById('rss-interval').value = Math.round(Number(sp.interval) / 60000);
+          } else {
+            document.getElementById('ws-url').value = sp.url || '';
+          }
+        }
+        // Pre-fill display params
+        if (selectedDisplay) {
+          const dp = selectedDisplay.params;
+          if (targetTab === 'rss') {
+            document.getElementById('rss-bg').value = dp.bg || '';
+            document.getElementById('rss-audio').value = dp.audio || '';
+          } else {
+            document.getElementById('ws-bg').value = dp.bg || '';
+            document.getElementById('ws-audio').value = dp.audio || '';
+          }
+        }
+
+        document.querySelector('.tab-btn[data-tab="' + targetTab + '"]').click();
+      });
 
       document.getElementById('panel-rss').addEventListener('input', updatePreview);
       document.getElementById('panel-ws').addEventListener('input', updatePreview);
@@ -481,6 +860,7 @@
       });
 
       updatePreview();
+      loadThemes();
     </script>
   </body>
 </html>

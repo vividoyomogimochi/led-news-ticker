@@ -1,0 +1,34 @@
+{
+  "sources": [
+    {
+      "id": "nhk-news",
+      "label": "NHK ニュース",
+      "params": {
+        "type": "rss",
+        "url": "https://www3.nhk.or.jp/rss/news/cat0.xml"
+      }
+    },
+    {
+      "id": "zenn-trend",
+      "label": "Zennのトレンド",
+      "params": {
+        "type": "rss",
+        "url": "https://zenn.dev/feed"
+      }
+    }
+  ],
+  "displays": [
+    {
+      "id": "default",
+      "label": "デフォルト",
+      "params": {}
+    },
+    {
+      "id": "neon-drizzle",
+      "label": "Neon Drizzle",
+      "params": {
+        "audio": "/music/Neon_Drizzle.mp3"
+      }
+    }
+  ]
+}
