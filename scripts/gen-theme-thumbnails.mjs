@@ -78,17 +78,40 @@ const LED_PAD_Y = 5;
 const LED_BAR_H = ATLAS_ROWS * STEP + LED_PAD_Y * 2;
 
 /**
- * Draws a LED ticker bar at the bottom of the canvas,
- * rendering the theme label with the actual font atlas.
+ * Parses a hex color string (#rrggbb or #rgb) into [r, g, b].
  */
-function drawLedBar(ctx, label) {
-  const barY = H - LED_BAR_H;
+function hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  if (h.length === 3) {
+    return [
+      parseInt(h[0] + h[0], 16),
+      parseInt(h[1] + h[1], 16),
+      parseInt(h[2] + h[2], 16),
+    ];
+  }
+  return [
+    parseInt(h.slice(0, 2), 16),
+    parseInt(h.slice(2, 4), 16),
+    parseInt(h.slice(4, 6), 16),
+  ];
+}
+
+/**
+ * Draws a LED ticker bar at the top of the canvas,
+ * rendering the theme label with the actual font atlas.
+ * @param {string} [normalColor] - hex color for lit dots (default: #ffaa00)
+ */
+function drawLedBar(ctx, label, normalColor) {
+  const barY = 0;
+  const color = normalColor ?? '#e0e0e0';
+  const [r, g, b] = hexToRgb(color);
 
   ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
   ctx.fillRect(0, barY, W, LED_BAR_H);
 
-  ctx.fillStyle = 'rgba(255, 170, 0, 0.18)';
-  ctx.fillRect(0, barY, W, 1);
+  // Bottom border separator
+  ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.18)`;
+  ctx.fillRect(0, barY + LED_BAR_H - 1, W, 1);
 
   const dotY = barY + LED_PAD_Y;
   const PAD_X = 4;
@@ -97,7 +120,7 @@ function drawLedBar(ctx, label) {
   const totalCols = Math.floor((W - PAD_X) / STEP);
   for (let col = 0; col < totalCols; col++) {
     for (let row = 0; row < ATLAS_ROWS; row++) {
-      ctx.fillStyle = 'rgba(255, 170, 0, 0.06)';
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.06)`;
       ctx.fillRect(PAD_X + col * STEP, dotY + row * STEP, DOT, DOT);
     }
   }
@@ -115,7 +138,7 @@ function drawLedBar(ctx, label) {
       const bits = g.columns[col];
       for (let row = 0; row < ATLAS_ROWS; row++) {
         if ((bits >> row) & 1) {
-          ctx.fillStyle = '#ffaa00';
+          ctx.fillStyle = color;
           ctx.fillRect(x + col * STEP, dotY + row * STEP, DOT, DOT);
         }
       }
@@ -159,7 +182,7 @@ for (const theme of themes) {
     }
   }
 
-  drawLedBar(ctx, theme.label);
+  drawLedBar(ctx, theme.label, theme.params?.normalColor);
 
   writeFileSync(outPath, canvas.toBuffer('image/png'));
   console.log(`  saved → ${outPath}`);
