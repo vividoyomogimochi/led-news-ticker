@@ -342,6 +342,25 @@
         gap: 10px;
       }
 
+      #theme-display-grid {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
+
+      #theme-display-grid .theme-card {
+        flex: 0 0 160px;
+        width: 160px;
+      }
+
+      #theme-display-grid .theme-empty {
+        flex: 1;
+      }
+
       .theme-card {
         display: flex;
         flex-direction: column;
