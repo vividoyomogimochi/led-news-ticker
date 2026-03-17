@@ -43,15 +43,15 @@ interface CharEntry {
 }
 
 export class StreamingBitmap {
-  readonly totalW: number;
+  totalW: number;
   private chars: CharEntry[];
   private atlas: FontAtlas;
   private columnCache: Map<number, Int8Array> = new Map();
 
-  constructor(segments: Segment[], boardW: number, atlas: FontAtlas) {
+  constructor(segments: Segment[], leadingGap: number, atlas: FontAtlas) {
     this.atlas = atlas;
 
-    let x = boardW;
+    let x = leadingGap;
     this.chars = [];
 
     for (const seg of segments) {
@@ -70,7 +70,48 @@ export class StreamingBitmap {
     this.totalW = x;
   }
 
+  /** Append segments to the end of the bitmap. Returns the column where the new content starts. */
+  append(segments: Segment[]): number {
+    const startCol = this.totalW;
+    let x = this.totalW;
+    for (const seg of segments) {
+      const typeCode = seg.type === 'accent' ? 1 : seg.type === 'sep' ? 2 : 0;
+      for (const ch of seg.text) {
+        const cp = ch.codePointAt(0)!;
+        const glyph = this.atlas.getGlyph(cp);
+        const w = glyph ? glyph.width : 0;
+        if (w > 0) {
+          this.chars.push({ codepoint: cp, typeCode, startX: x, width: w });
+          x += w;
+        }
+      }
+    }
+    this.totalW = x;
+    return startCol;
+  }
+
+  /** Remove chars fully before the given column to free memory. */
+  trimBefore(col: number): void {
+    let firstKeep = this.chars.length;
+    for (let i = 0; i < this.chars.length; i++) {
+      if (this.chars[i].startX + this.chars[i].width > col) {
+        firstKeep = i;
+        break;
+      }
+    }
+    if (firstKeep > 0) {
+      this.chars = this.chars.slice(firstKeep);
+      for (const key of this.columnCache.keys()) {
+        if (key < col) this.columnCache.delete(key);
+      }
+    }
+  }
+
   getColumn(col: number): Int8Array {
+    if (col >= this.totalW) {
+      return new Int8Array(ROWS).fill(-1);
+    }
+
     const cached = this.columnCache.get(col);
     if (cached) return cached;
 
@@ -111,6 +152,8 @@ export class StreamingBitmap {
   }
 }
 
+const SEP_SEGMENT: Segment = { text: '  ●  ', type: 'sep' };
+
 export class LedBoard {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -118,12 +161,13 @@ export class LedBoard {
   private atlas: FontAtlas;
   private colors: LedColorScheme;
   private bitmap: StreamingBitmap | null = null;
-  private pendingBitmap: StreamingBitmap | null = null;
   private offset = 0;
   private lastDrawTime = 0;
   private rafId: number | null = null;
-  private currentSegments: Segment[] = [];
   private resizeObserver: ResizeObserver;
+  private requestNext: (() => Segment) | null = null;
+  private triggerCol = 0;
+  private triggered = false;
 
   constructor(canvas: HTMLCanvasElement, atlas: FontAtlas, options?: { width?: number; colors?: Partial<LedColorScheme> }) {
     this.canvas = canvas;
@@ -138,31 +182,41 @@ export class LedBoard {
     this.resizeObserver.observe(canvas.parentElement ?? canvas);
   }
 
+  setRequestNext(cb: () => Segment): void {
+    this.requestNext = cb;
+  }
+
+  /** Pop the first message and build the initial bitmap with leading gap. */
+  private initFirst(): void {
+    if (!this.requestNext) return;
+    const segment = this.requestNext();
+    this.bitmap = new StreamingBitmap([segment], this.boardW, this.atlas);
+    this.triggerCol = this.bitmap.totalW;
+    this.bitmap.append([SEP_SEGMENT]);
+    this.offset = this.boardW - Math.ceil(this.boardW / STEP);
+    this.triggered = false;
+  }
+
+  /** Append the next message + separator to the current bitmap. */
+  private appendNext(): void {
+    if (!this.requestNext || !this.bitmap) return;
+    const segment = this.requestNext();
+    this.bitmap.append([segment]);
+    this.triggerCol = this.bitmap.totalW;
+    this.bitmap.append([SEP_SEGMENT]);
+    this.triggered = false;
+  }
+
   private onResize(): void {
     const newW = this.canvas.parentElement?.clientWidth ?? this.boardW;
     if (newW === this.boardW || newW === 0) return;
     this.boardW = newW;
     this.canvas.width = newW;
-    if (this.currentSegments.length > 0) {
-      this.bitmap = new StreamingBitmap(this.currentSegments, this.boardW, this.atlas);
-      this.offset = this.boardW - Math.ceil(this.boardW / STEP);
-      this.pendingBitmap = null;
-    }
-  }
-
-  setSegments(segments: Segment[]): void {
-    if (segments.length === 0) return;
-    this.currentSegments = segments;
-    const newBitmap = new StreamingBitmap(segments, this.boardW, this.atlas);
-    if (this.bitmap === null) {
-      this.bitmap = newBitmap;
-      this.offset = this.boardW - Math.ceil(this.boardW / STEP);
-    } else {
-      this.pendingBitmap = newBitmap;
-    }
+    this.initFirst();
   }
 
   start(): void {
+    this.initFirst();
     const loop = (timestamp: number) => {
       this.draw(timestamp);
       this.rafId = requestAnimationFrame(loop);
@@ -188,8 +242,13 @@ export class LedBoard {
 
     if (!this.bitmap) return;
 
-    const { totalW } = this.bitmap;
     const VISIBLE = Math.ceil(this.boardW / STEP);
+
+    // When the separator enters the viewport from the right, pop next message
+    if (!this.triggered && this.offset + VISIBLE >= this.triggerCol) {
+      this.triggered = true;
+      this.appendNext();
+    }
 
     type DotKind = 'normal' | 'accent' | 'sep' | 'off';
     const paths: Record<DotKind, { cx: number; cy: number }[]> = {
@@ -197,7 +256,7 @@ export class LedBoard {
     };
 
     for (let i = 0; i < VISIBLE; i++) {
-      const srcCol = (this.offset + i) % totalW;
+      const srcCol = this.offset + i;
       const px = i * STEP;
 
       const col = this.bitmap.getColumn(srcCol);
@@ -237,13 +296,11 @@ export class LedBoard {
       ctx.fill();
     }
 
-    this.offset = (this.offset + 1) % totalW;
-    if (this.offset === 0) {
-      if (this.pendingBitmap !== null) {
-        this.bitmap = this.pendingBitmap;
-        this.pendingBitmap = null;
-      }
-      this.offset = this.boardW - Math.ceil(this.boardW / STEP);
+    this.offset += 1;
+
+    // Compact old content that's scrolled well past the left edge
+    if (this.offset > this.boardW * 4) {
+      this.bitmap.trimBefore(this.offset - this.boardW * 2);
     }
   }
 }

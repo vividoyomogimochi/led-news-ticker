@@ -80,9 +80,6 @@ const canvas = document.getElementById('ledCanvas') as HTMLCanvasElement;
 
 FontAtlas.load('/fonts/led-ticker-font-atlas.bin').then((atlas) => {
   const board = new LedBoard(canvas, atlas, { colors: colorOverrides });
+  board.setRequestNext(() => scheduler.dequeue());
   board.start();
-  scheduler.setOnUpdate((segments) => {
-    board.setSegments(segments);
-  });
-  board.setSegments(scheduler.getSegments());
 });

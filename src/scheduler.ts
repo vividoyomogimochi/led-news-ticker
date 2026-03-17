@@ -1,7 +1,5 @@
 import type { Source, Segment } from './sources';
 
-const SEP_SEGMENT: Segment = { text: '  ●  ', type: 'sep' };
-
 interface TimedSegment {
   segment: Segment;
   expiresAt: number;
@@ -15,9 +13,8 @@ interface SchedulerOptions {
 export class Scheduler {
   private sources: Source[] = [];
   private queue: TimedSegment[] = [];
-  private onUpdate: ((segments: Segment[]) => void) | null = null;
   private ttlMs: number;
-  private fallbackSegment: Segment;
+  readonly fallbackSegment: Segment;
   private cleanupTimer: ReturnType<typeof setInterval>;
 
   constructor(options?: SchedulerOptions) {
@@ -42,7 +39,6 @@ export class Scheduler {
     }
     this.sources = [];
     this.queue = [];
-    this.onUpdate?.(this.getSegments());
   }
 
   destroy(): void {
@@ -50,31 +46,22 @@ export class Scheduler {
     this.unregisterAll();
   }
 
-  setOnUpdate(cb: (segments: Segment[]) => void): void {
-    this.onUpdate = cb;
+  /** Pop the next non-expired segment, or return fallback if queue is empty. */
+  dequeue(): Segment {
+    while (this.queue.length > 0) {
+      const entry = this.queue.shift()!;
+      if (Date.now() < entry.expiresAt) {
+        return entry.segment;
+      }
+    }
+    return this.fallbackSegment;
   }
 
   private cleanup(): void {
-    const before = this.queue.length;
     this.queue = this.queue.filter((e) => Date.now() < e.expiresAt);
-    if (this.queue.length !== before) {
-      this.onUpdate?.(this.getSegments());
-    }
   }
 
   private enqueue(segment: Segment): void {
     this.queue.push({ segment, expiresAt: Date.now() + this.ttlMs });
-    this.onUpdate?.(this.getSegments());
-  }
-
-  getSegments(): Segment[] {
-    const active = this.queue.map((e) => e.segment);
-    if (active.length === 0) return [this.fallbackSegment];
-    const result: Segment[] = [];
-    for (let i = 0; i < active.length; i++) {
-      if (i > 0) result.push(SEP_SEGMENT);
-      result.push(active[i]);
-    }
-    return result;
   }
 }
