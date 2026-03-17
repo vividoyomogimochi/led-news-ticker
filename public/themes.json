@@ -20,15 +20,25 @@
   "displays": [
     {
       "id": "default",
-      "label": "デフォルト",
-      "params": {}
+      "label": "Super News",
+      "params": {
+        "bg": "/images/news.jpg"
+      }
     },
     {
-      "id": "neon-diner",
-      "label": "Neon Diner",
+      "id": "diner-girls",
+      "label": "Diner Girls",
       "params": {
-        "bg": "/images/diner.jpg",
+        "bg": "/images/diner-girls.jpg",
         "audio": "/music/Neon_Drizzle.mp3"
+      }
+    },
+    {
+      "id": "pink-desktop",
+      "label": "Pink Desktop",
+      "params": {
+        "bg": "/images/pink-desktop.jpg",
+        "audio": "/music/CRT_Dreams.mp3"
       }
     }
   ]
