@@ -61,9 +61,10 @@ export class RssSource implements Source {
 function parseRssItems(xml: string): string[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(xml, 'application/xml');
-  const items = doc.querySelectorAll('item');
+  const items = doc.querySelectorAll('item')
+  const entries = doc.querySelectorAll('entry');
   const results: string[] = [];
-  items.forEach((item) => {
+  [...items, ...entries].forEach((item) => {
     const title = item.querySelector('title')?.textContent?.trim();
     if (title) results.push(title);
   });
