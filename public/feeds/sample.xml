@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>LED News Ticker サンプルフィード</title>
+    <link>http://localhost:5173</link>
+    <description>led-news-ticker 動作確認用サンプルニュース</description>
+    <language>ja</language>
+    <item>
+      <title>速報：近所の猫、またコーヒーカップを落とす</title>
+    </item>
+    <item>
+      <title>研究結果：昼寝は生産性向上に効果ありと判明</title>
+    </item>
+    <item>
+      <title>市場情報：おそらく今のところ問題なし</title>
+    </item>
+    <item>
+      <title>天気予報：午後は晴れ間あり、気分も概ね良好の見込み</title>
+    </item>
+    <item>
+      <title>テクノロジー：「初回でコードが動いた」と開発者が主張、周囲は懐疑的</title>
+    </item>
+    <item>
+      <title>速報：午後の日差しが到来、住民戸惑う</title>
+    </item>
+    <item>
+      <title>更新：コーヒーの在庫、午後も安定を維持</title>
+    </item>
+    <item>
+      <title>警報：また誰かが電子レンジで魚を温める</title>
+    </item>
+    <item>
+      <title>スポーツ：地元チームが試合、結果は不明</title>
+    </item>
+    <item>
+      <title>文化：新しい展覧会が開幕、「興味深い」との声</title>
+    </item>
+  </channel>
+</rss>
