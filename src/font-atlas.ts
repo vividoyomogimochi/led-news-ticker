@@ -79,6 +79,17 @@ export class FontAtlas {
     return g.columns[localCol];
   }
 
+  /** Return true if every renderable character in the string has a glyph. */
+  canRender(text: string): boolean {
+    for (const ch of text) {
+      const cp = ch.codePointAt(0)!;
+      // Skip ASCII control characters and whitespace – they don't need glyphs
+      if (cp <= 0x20) continue;
+      if (!this.glyphs.has(cp)) return false;
+    }
+    return true;
+  }
+
   get rows(): number {
     return ROWS;
   }

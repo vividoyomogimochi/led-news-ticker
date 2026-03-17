@@ -81,7 +81,14 @@ const canvas = document.getElementById('ledCanvas') as HTMLCanvasElement;
 
 FontAtlas.load('/fonts/led-ticker-font-atlas.bin').then((atlas) => {
   const board = new LedBoard(canvas, atlas, { colors: colorOverrides });
-  board.setRequestNext(() => scheduler.dequeue());
+  board.setRequestNext(() => {
+    // Skip messages containing characters the font cannot render
+    for (let i = 0; i < 16; i++) {
+      const seg = scheduler.dequeue();
+      if (atlas.canRender(seg.text)) return seg;
+    }
+    return scheduler.fallbackSegment;
+  });
   board.start();
 
   // Notify parent frame of height after canvas is properly sized
