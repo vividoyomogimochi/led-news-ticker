@@ -41,6 +41,59 @@ pnpm build:atlas   # public/fonts/led-ticker-font-atlas.bin を生成
 
 LEDは13行・ドットサイズ5px・間隔1pxのグリッド構成。
 
+## テーマ
+
+`/config` の **Theme** タブでソースと表示設定をプリセットから選べる。
+
+### themes.json
+
+`public/themes.json` でプリセットを定義する。`sources` と `displays` の2グループで独立して選択できる。
+
+```json
+{
+  "sources": [
+    {
+      "id": "my-rss",
+      "label": "My RSS",
+      "params": { "type": "rss", "url": "https://example.com/feed.xml" }
+    }
+  ],
+  "displays": [
+    {
+      "id": "my-display",
+      "label": "My Display",
+      "params": { "bg": "/images/bg.jpg", "audio": "/music/bgm.mp3" }
+    }
+  ]
+}
+```
+
+| フィールド | 説明 |
+|------------|------|
+| `id` | 一意のキー。サムネイルのファイル名（`public/themes/{id}.png`）にも使われる |
+| `label` | UI に表示する名前 |
+| `params` | URLクエリパラメータとして渡す値 |
+
+選択した source と display の `params` はマージされてティッカーの URL に合成される。
+
+### サムネイル生成
+
+display のサムネイルは `pnpm gen:thumbs` で自動生成する。既存ファイルはスキップされるので、新しい display を追加したときだけ実行すれば良い。
+
+```sh
+pnpm gen:thumbs   # public/themes/{id}.png を生成（display のみ）
+```
+
+- 解像度: 320×180px
+- 背景: `params.bg` があればその画像、なければ `VITE_DEFAULT_BG`（`.env`）の画像
+- LEDバー: フォントアトラスで `label` をドット描画してオーバーレイ
+
+### 設定ページの操作
+
+1. **Source** セレクトボックスでソースを選ぶ
+2. **Display** グリッドからカードをクリックして表示設定を選ぶ（audio があるカードは選択時に3秒プレビュー再生→フェードアウト）
+3. プレビュー URL を確認して **ティッカーを開く** または **カスタマイズ**（RSS/WS タブへパラメータを引き継いで移動）
+
 ## テキストソース
 
 `src/sources/` 以下にソースを実装する。`Source` インターフェイスを実装し、`Scheduler` に登録すると自動的に流れる。

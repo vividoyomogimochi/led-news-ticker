@@ -19,7 +19,7 @@ const themesDir = join(publicDir, 'themes');
 mkdirSync(themesDir, { recursive: true });
 
 const data = JSON.parse(readFileSync(join(publicDir, 'themes.json'), 'utf-8'));
-const themes = [...(data.sources || []), ...(data.displays || [])];
+const themes = data.displays || [];
 
 // Load env vars from .env and .env.local
 function loadEnv() {
