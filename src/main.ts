@@ -1,6 +1,7 @@
 import { Scheduler } from './scheduler';
-import { LedBoard, colorEntryFromHex } from './led-board';
-import type { LedColorScheme } from './led-board';
+import { LedBoard } from './led-board';
+import { colorEntryFromHex } from './led-colors';
+import type { LedColorScheme } from './led-colors';
 import { FontAtlas } from './font-atlas';
 import { RssSource, WebSocketSource } from './sources';
 import type { Segment, SegmentType } from './sources';

@@ -1,109 +1,12 @@
 import { state } from './state';
 import type { ThemeEntry } from './state';
-import { COLOR_KEYS, COLOR_DEFAULTS, HEX_RE, ICON_PLAY, ICON_STOP } from './constants';
+import { COLOR_KEYS, COLOR_DEFAULTS, HEX_RE } from './constants';
 import { buildParams, buildThemeParams, updatePreview } from './preview';
 import { setSourceType } from './source-type';
+import { stopCurrentAudio } from './audio-preview';
+import { makeThemeCard } from './theme-card';
 
 let themesLoaded = false;
-let currentAudio: HTMLAudioElement | null = null;
-let currentAudioTimer: ReturnType<typeof setTimeout> | null = null;
-let currentAudioFade: ReturnType<typeof setInterval> | null = null;
-let currentOverlayIcon: HTMLElement | null = null;
-
-export function stopCurrentAudio(): void {
-  if (currentAudioTimer) { clearTimeout(currentAudioTimer); currentAudioTimer = null; }
-  if (currentAudioFade) { clearInterval(currentAudioFade); currentAudioFade = null; }
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-  if (currentOverlayIcon) { currentOverlayIcon.innerHTML = ICON_PLAY; currentOverlayIcon = null; }
-  document.querySelectorAll('.theme-card.playing').forEach((c) => c.classList.remove('playing'));
-}
-
-function playPreview(audioUrl: string, card: HTMLElement, iconEl: HTMLElement | null): void {
-  stopCurrentAudio();
-  const audio = new Audio(audioUrl);
-  audio.volume = 0.5;
-  audio.play().catch(() => {});
-  currentAudio = audio;
-  currentOverlayIcon = iconEl;
-  if (iconEl) iconEl.innerHTML = ICON_STOP;
-  card.classList.add('playing');
-
-  currentAudioTimer = setTimeout(() => {
-    currentAudioTimer = null;
-    let vol = audio.volume;
-    const step = vol / 20;
-    currentAudioFade = setInterval(() => {
-      vol = Math.max(0, vol - step);
-      if (currentAudio) currentAudio.volume = vol;
-      if (vol <= 0) {
-        clearInterval(currentAudioFade!);
-        currentAudioFade = null;
-        if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-        if (currentOverlayIcon) { currentOverlayIcon.innerHTML = ICON_PLAY; currentOverlayIcon = null; }
-        card.classList.remove('playing');
-      }
-    }, 50);
-  }, 3000);
-}
-
-function makeThemeCard(
-  theme: ThemeEntry,
-  gridId: string,
-  getSelected: () => ThemeEntry | null,
-  setSelected: (v: ThemeEntry) => void,
-): HTMLElement {
-  const audioUrl = theme.params?.audio;
-
-  const card = document.createElement('div');
-  card.className = 'theme-card';
-
-  const thumb = document.createElement('div');
-  thumb.className = 'theme-card-thumb';
-  const img = document.createElement('img');
-  img.src = '/themes/' + theme.id + '.png';
-  img.alt = '';
-  img.loading = 'lazy';
-  thumb.appendChild(img);
-
-  let overlayIcon: HTMLElement | null = null;
-  if (audioUrl) {
-    const overlay = document.createElement('div');
-    overlay.className = 'theme-card-overlay';
-    overlayIcon = document.createElement('span');
-    overlayIcon.innerHTML = ICON_PLAY;
-    overlay.appendChild(overlayIcon);
-    thumb.appendChild(overlay);
-  }
-
-  const body = document.createElement('div');
-  body.className = 'theme-card-body';
-  const label = document.createElement('span');
-  label.className = 'theme-card-label';
-  label.textContent = theme.label;
-  body.appendChild(label);
-
-  card.appendChild(thumb);
-  card.appendChild(body);
-
-  card.addEventListener('click', () => {
-    const wasSelected = getSelected() === theme;
-    const isPlaying = card.classList.contains('playing');
-
-    if (wasSelected && isPlaying) {
-      stopCurrentAudio();
-      return;
-    }
-
-    document.querySelectorAll('#' + gridId + ' .theme-card').forEach((c) => c.classList.remove('selected'));
-    stopCurrentAudio();
-    card.classList.add('selected');
-    setSelected(theme);
-    if (audioUrl) playPreview(audioUrl, card, overlayIcon);
-    updatePreview();
-  });
-
-  return card;
-}
 
 export async function loadThemes(): Promise<void> {
   if (themesLoaded) return;
@@ -156,6 +59,8 @@ export async function loadThemes(): Promise<void> {
     displayGrid.innerHTML = '';
   }
 }
+
+export { stopCurrentAudio };
 
 export function initThemeButtons(): void {
   document.getElementById('theme-open-btn')!.addEventListener('click', () => {

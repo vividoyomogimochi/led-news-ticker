@@ -2,7 +2,7 @@ import { describe, expect, it, beforeAll } from 'vitest';
 import { registerFont, createCanvas } from 'canvas';
 
 import type { Segment } from './sources';
-import { StreamingBitmap } from './led-board';
+import { StreamingBitmap } from './streaming-bitmap';
 import { FontAtlas } from './font-atlas';
 import type { Glyph } from './font-atlas';
 
