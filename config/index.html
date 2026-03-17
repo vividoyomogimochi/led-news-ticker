@@ -440,20 +440,21 @@
 
       .theme-actions {
         display: flex;
-        gap: 8px;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 12px;
       }
 
       .theme-btn {
-        flex: 1;
         background: transparent;
         border: 1px solid var(--border);
         border-radius: 2px;
         color: var(--amber-dim);
         cursor: pointer;
         font-family: 'Share Tech Mono', monospace;
-        font-size: 0.85rem;
-        letter-spacing: 0.08em;
-        padding: 11px;
+        font-size: 1rem;
+        letter-spacing: 0.12em;
+        padding: 13px;
         text-transform: uppercase;
         transition:
           border-color 0.2s,
@@ -502,8 +503,8 @@
         </div>
       </div>
       <div class="theme-actions">
-        <button class="theme-btn" id="theme-customize-btn" type="button">カスタマイズ →</button>
         <button class="theme-btn theme-btn-primary" id="theme-open-btn" type="button">ティッカーを開く →</button>
+        <button class="theme-btn" id="theme-customize-btn" type="button">カスタマイズ →</button>
       </div>
     </div>
 
