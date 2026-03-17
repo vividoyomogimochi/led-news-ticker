@@ -78,7 +78,10 @@
       "label": "Pink Desktop",
       "params": {
         "bg": "/images/pink-desktop.jpg",
-        "audio": "/music/CRT_Dreams.mp3"
+        "audio": "/music/CRT_Dreams.mp3",
+        "normalColor": "#ff80ff",
+        "accentColor": "#ffdd33",
+        "sepColor": "#ff8000"
       }
     }
   ]
