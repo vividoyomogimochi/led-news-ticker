@@ -62,7 +62,7 @@ LEDは13行・ドットサイズ5px・間隔1pxのグリッド構成。
     {
       "id": "my-display",
       "label": "My Display",
-      "params": { "bg": "/images/bg.jpg", "audio": "/music/bgm.mp3" }
+      "params": { "bg": "/images/bg.jpg", "audio": "/music/audio.mp3" }
     }
   ]
 }
