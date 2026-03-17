@@ -129,6 +129,21 @@
         width: 20px;
         height: 20px;
       }
+      @keyframes settings-hint-blink {
+        0%, 100% {
+          border-color: rgba(255, 170, 0, 0.35);
+          color: rgba(255, 170, 0, 0.75);
+          background: rgba(15, 15, 15, 0.85);
+        }
+        50% {
+          border-color: rgba(255, 200, 50, 0.9);
+          color: #ffcc33;
+          background: rgba(50, 35, 0, 0.9);
+        }
+      }
+      #settings-btn.hint {
+        animation: settings-hint-blink 2.2s ease-in-out infinite;
+      }
     </style>
   </head>
   <body>
@@ -188,9 +203,21 @@
         const btn = document.getElementById('settings-btn');
         let justShown = false;
 
+        // Default mode: no meaningful params other than 'type' are set
+        const _p = new URLSearchParams(location.search);
+        const _hasConfig = ['url', 'bg', 'audio', 'interval', 'segmentType'].some(k => _p.has(k));
+        if (!_hasConfig) {
+          btn.classList.add('visible', 'hint');
+          const hintTimer = setTimeout(() => {
+            btn.classList.remove('visible', 'hint');
+          }, 30000);
+          btn.addEventListener('click', () => clearTimeout(hintTimer), { once: true });
+        }
+
         corner.addEventListener('touchstart', (e) => {
           if (!btn.classList.contains('visible')) {
             btn.classList.add('visible');
+            btn.classList.remove('hint');
             e.preventDefault(); // suppress the follow-up click so navigation doesn't fire immediately
             e.stopPropagation();
           }
@@ -199,7 +226,9 @@
         corner.addEventListener('click', (e) => { e.stopPropagation(); });
 
         document.addEventListener('click', () => {
-          if (!justShown) btn.classList.remove('visible');
+          if (!justShown) {
+            btn.classList.remove('visible', 'hint');
+          }
         });
       })();
 
