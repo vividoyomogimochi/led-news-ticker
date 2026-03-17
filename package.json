@@ -7,7 +7,8 @@
     "dev": "vite",
     "build:atlas": "node scripts/build-font-atlas.mjs",
     "gen:thumbs": "node scripts/gen-theme-thumbnails.mjs",
-    "build": "tsc && tsc -p tsconfig.node.json && vite build",
+    "build": "tsc && tsc -p tsconfig.node.json && vite build && cp node_modules/@resvg/resvg-wasm/index_bg.wasm dist/resvg.wasm",
+    "dev:pages": "pnpm build && wrangler pages dev dist",
     "preview": "vite preview",
     "deploy": "pnpm run build && wrangler pages deploy dist",
     "lint": "eslint src *.config.ts",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260312.1",
     "@eslint/js": "^10.0.1",
+    "@resvg/resvg-wasm": "^2.6.2",
     "@types/node": "^25.4.0",
     "@types/ws": "^8.18.1",
     "canvas": "^3.2.1",
