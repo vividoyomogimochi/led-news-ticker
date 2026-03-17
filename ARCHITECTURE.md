@@ -52,6 +52,8 @@ content/
   help.md                     ヘルプページの Markdown ソース（ビルド時に HTML 変換）
 
 functions/
+  _middleware.js               メインページの og:image をクエリに応じて動的書き換え
+  ogp.js                      OGP 画像生成（SVG 組み立て → resvg-wasm で PNG 出力）
   proxy.js                    Cloudflare Functions の CORS プロキシ
 
 scripts/
@@ -90,9 +92,30 @@ iframe のリサイズちらつき防止として、ResizeObserver は LedBoard 
 ## ビルド
 
 ```bash
-pnpm build          # tsc + vite build
-pnpm dev            # 開発サーバー
+pnpm build          # tsc + vite build（resvg WASM もコピー）
+pnpm dev            # Vite 開発サーバー
+pnpm dev:pages      # ビルド後 wrangler pages dev で Functions 含むローカル確認
 pnpm vitest run     # テスト実行
 ```
 
 `vite.config.ts` の `inject-help-content` プラグインが `content/help.md` を Markdown→HTML 変換し、`config/index.html` の `<!--HELP_CONTENT-->` に注入する。
+
+## OGP 画像生成
+
+Cloudflare Pages Functions で動的 OGP 画像を生成する。
+
+```
+/?bg=/images/foo.jpg&accentColor=%23ff00ff
+        │
+        ▼  _middleware.js（HTMLRewriter）
+   og:image → /ogp?bg=/images/foo.jpg&accentColor=%23ff00ff
+        │
+        ▼  ogp.js onRequest()
+   1. resvg-wasm 初期化（静的 import した WASM モジュール）
+   2. フォントアトラス読み込み（env.ASSETS 経由）
+   3. bg 画像を data URL に変換（同一オリジンのみ）
+   4. SVG 組み立て → Resvg で PNG レンダリング
+   5. 1200×630 PNG を返却（Cache-Control: 24h）
+```
+
+外部 bg URL の場合はリモートフェッチを避け、静的 `/images/og.jpg` をそのまま返す。

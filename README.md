@@ -15,6 +15,12 @@ pnpm dev
 pnpm build
 ```
 
+Cloudflare Pages Functions をローカルで動作確認する場合:
+
+```sh
+pnpm dev:pages   # ビルド後 wrangler pages dev で dist を配信
+```
+
 ## 仕組み
 
 ### フォントアトラス（ビルド時生成）
@@ -93,6 +99,17 @@ pnpm gen:thumbs   # public/themes/{id}.png を生成（display のみ）
 1. **Source** セレクトボックスでソースを選ぶ
 2. **Display** グリッドからカードをクリックして表示設定を選ぶ（audio があるカードは選択時に3秒プレビュー再生→フェードアウト）
 3. プレビュー URL を確認して **ティッカーを開く** または **カスタマイズ**（RSS/WS タブへパラメータを引き継いで移動）
+
+## OGP 画像の動的生成
+
+Cloudflare Pages Functions でティッカーの URL に応じた OGP 画像を動的に生成する。SNS でシェアしたときにテーマごとのプレビューが表示される。
+
+- `/ogp` エンドポイントがクエリパラメータ（`bg`, `normalColor`, `accentColor`, `sepColor`, `audio`）を受け取り、1200×630 の PNG を返す
+- フォントアトラスを読み込み、LED ドットで「LED ● NEWS ● TICKER」をレンダリング
+- `bg` がサイト内パス（`/images/...`）の場合は背景画像を合成、外部 URL の場合は静的 `og.jpg` にフォールバック
+- `audio` パラメータがあると再生ボタンのオーバーレイを追加
+- SVG を組み立て、resvg-wasm で PNG にレンダリング
+- ミドルウェア（`_middleware.js`）がメインページへのリクエスト時に `og:image` メタタグを `/ogp?...` に書き換え
 
 ## テキストソース
 
