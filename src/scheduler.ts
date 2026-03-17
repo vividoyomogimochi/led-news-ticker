@@ -10,6 +10,8 @@ interface SchedulerOptions {
   fallbackText?: string;
 }
 
+const MAX_QUEUE = 64;
+
 export class Scheduler {
   private sources: Source[] = [];
   private queue: TimedSegment[] = [];
@@ -62,6 +64,9 @@ export class Scheduler {
   }
 
   private enqueue(segment: Segment): void {
+    if (this.queue.length >= MAX_QUEUE) {
+      this.queue.shift();
+    }
     this.queue.push({ segment, expiresAt: Date.now() + this.ttlMs });
   }
 }
