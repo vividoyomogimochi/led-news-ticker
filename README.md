@@ -1,59 +1,55 @@
 # led-news-ticker
 
-ニューステロップ風のLEDスクロールボードをブラウザで表示するアプリ。
+ニュース番組のテロップのように、LED 風のドット文字がスクロールするティッカーをブラウザで表示するアプリです。テーマを切り替えて背景や配色を変えたり、RSS や WebSocket から好きなテキストを流したりできます。
 
-## 動かし方
+## セットアップ
 
 ```sh
 pnpm install
 pnpm dev
 ```
 
-ビルドする場合:
+本番用にビルドする場合は `pnpm build` を実行してください。
+
+Cloudflare Pages Functions をローカルで確認したい場合は、ビルド後に以下を実行します。
 
 ```sh
-pnpm build
-```
-
-Cloudflare Pages Functions をローカルで動作確認する場合:
-
-```sh
-pnpm dev:pages   # ビルド後 wrangler pages dev で dist を配信
+pnpm dev:pages
 ```
 
 ## 仕組み
 
-### フォントアトラス（ビルド時生成）
+### フォントアトラス
 
-ブラウザのフォントレンダリングはエンジンによって異なり、Canvas 2D の `fillText` で同じ字体を描画しても iOS Safari・Android Firefox などではアンチエイリアスのかかり方が違う。これを回避するため、**全グリフのビットマップをビルド時に生成**してバイナリファイルとして配布する。
+ブラウザごとにテキスト描画のアンチエイリアスが異なる問題を避けるため、このアプリでは Canvas のテキスト描画を一切使いません。代わりに、ビルド時にすべてのグリフをビットマップ化したバイナリファイル（フォントアトラス）を生成し、それを配布します。
 
 ```sh
-pnpm build:atlas   # public/fonts/led-ticker-font-atlas.bin を生成
+pnpm build:atlas
 ```
 
-`scripts/build-font-atlas.mjs` が node-canvas（Cairo）を使い `antialias=none` でフォントをラスタライズする。Cairo のピクセルフォント描画はアンチエイリアスなしで完全なバイナリ出力（0か255のみ）になるため、どのブラウザで表示しても同一のドットパターンが得られる。
+`scripts/build-font-atlas.mjs` が node-canvas（Cairo）を使い、アンチエイリアスなしでフォントをラスタライズします。出力は完全にバイナリ（0 か 255 のみ）なので、どの環境でも同一のドットパターンが再現されます。
 
-- 対象グリフ: ASCII・かな・JIS第1-2水準漢字など 22,340 文字
-- ファイルサイズ: 約 676KB（gzip 約 241KB）
-- フォーマット: `uint32 グリフ数` + グリフごとに `uint32 コードポイント`, `uint8 幅`, `幅 × uint16 列ビットマップ`（bit *i* = 行 *i* が ON）
-- ライセンス: PixelMplus12-Regular.ttf のラスタライズ派生物のため **SIL Open Font License 1.1** が適用される
+- **対象グリフ**: ASCII・かな・JIS 第 1〜2 水準漢字など約 22,340 文字
+- **ファイルサイズ**: 約 676 KB（gzip で約 241 KB）
+- **フォーマット**: `uint32 グリフ数` のあとにグリフごとの `uint32 コードポイント`, `uint8 幅`, `幅 × uint16 列ビットマップ`
+- **ライセンス**: PixelMplus12-Regular.ttf のラスタライズ派生物のため SIL Open Font License 1.1 が適用されます
 
-### ランタイム描画
+### 描画の流れ
 
-1. `FontAtlas.load()` でアトラスバイナリを fetch してコードポイント→グリフのマップを構築
-2. `StreamingBitmap` が各文字のグリフビットマップを列ごとに二分探索で参照（Canvas テキスト描画は一切行わない）
-3. 点灯ドットを `LedBoard` がメイン Canvas に描画（グローと中心ドットの2層構成）
-4. 時間ベースのアニメーションで 15px/秒スクロール
+1. `FontAtlas.load()` でアトラスバイナリを fetch し、コードポイントからグリフへのマップを構築する
+2. `StreamingBitmap` が各文字のグリフビットマップを列ごとに二分探索で参照する
+3. `LedBoard` がグローと中心ドットの 2 層構成でメイン Canvas に描画する
+4. 時間ベースのアニメーションで毎秒 15 px スクロールする
 
-LEDは13行・ドットサイズ5px・間隔1pxのグリッド構成。
+LED は 13 行、ドットサイズ 5 px、間隔 1 px のグリッド構成です。
 
 ## テーマ
 
-`/config` の **Theme** タブでソースと表示設定をプリセットから選べる。
+`/config` ページの **Theme** タブから、ソース（何を流すか）と表示設定（見た目と音）をそれぞれプリセットから選べます。
 
-### themes.json
+### プリセットの定義
 
-`public/themes.json` でプリセットを定義する。`sources` と `displays` の2グループで独立して選択できる。
+プリセットは `public/themes.json` で管理します。`sources` と `displays` の 2 グループに分かれていて、それぞれ独立して選択できます。
 
 ```json
 {
@@ -74,56 +70,55 @@ LEDは13行・ドットサイズ5px・間隔1pxのグリッド構成。
 }
 ```
 
+各エントリの構造は以下のとおりです。
+
 | フィールド | 説明 |
-|------------|------|
+|---|---|
 | `id` | 一意のキー。サムネイルのファイル名（`public/themes/{id}.png`）にも使われる |
-| `label` | UI に表示する名前 |
-| `params` | URLクエリパラメータとして渡す値 |
+| `label` | UI に表示される名前 |
+| `params` | URL クエリパラメータとしてティッカーに渡される値 |
 
-選択した source と display の `params` はマージされてティッカーの URL に合成される。
+選択した source と display の `params` がマージされ、ティッカーの URL に反映されます。
 
-### サムネイル生成
+### サムネイルの生成
 
-display のサムネイルは `pnpm gen:thumbs` で自動生成する。既存ファイルはスキップされるので、新しい display を追加したときだけ実行すれば良い。
+display のサムネイルは以下のコマンドで自動生成できます。既存のファイルはスキップされるので、新しい display を追加したときだけ実行すれば十分です。
 
 ```sh
-pnpm gen:thumbs   # public/themes/{id}.png を生成（display のみ）
+pnpm gen:thumbs
 ```
 
-- 解像度: 320×180px
-- 背景: `params.bg` があればその画像、なければ `VITE_DEFAULT_BG`（`.env`）の画像
-- LEDバー: フォントアトラスで `label` をドット描画してオーバーレイ
+生成される画像は 320×180 px で、`params.bg` で指定された背景画像（なければ `.env` の `VITE_DEFAULT_BG`）の上に、フォントアトラスで `label` を LED ドット描画したものです。
 
-### 設定ページの操作
+### 設定ページの使い方
 
-1. **Source** セレクトボックスでソースを選ぶ
-2. **Display** グリッドからカードをクリックして表示設定を選ぶ（audio があるカードは選択時に3秒プレビュー再生→フェードアウト）
-3. プレビュー URL を確認して **ティッカーを開く** または **カスタマイズ**（RSS/WS タブへパラメータを引き継いで移動）
+1. **Source** セレクトボックスからソースを選ぶ
+2. **Display** のグリッドからカードをクリックして表示設定を選ぶ（audio があるカードは選択時に 3 秒間プレビュー再生されます）
+3. プレビュー URL を確認し、**ティッカーを開く** か **カスタマイズ**（RSS/WS タブへパラメータを引き継いで移動）を選ぶ
 
-## OGP 画像の動的生成
+## OGP 画像
 
-Cloudflare Pages Functions でティッカーの URL に応じた OGP 画像を動的に生成する。SNS でシェアしたときにテーマごとのプレビューが表示される。
+Cloudflare Pages Functions を使い、ティッカーの URL に応じた OGP 画像を動的に生成します。SNS でシェアすると、テーマに合わせたプレビューが表示されます。
 
-- `/ogp` エンドポイントがクエリパラメータ（`bg`, `normalColor`, `accentColor`, `sepColor`, `audio`）を受け取り、1200×630 の PNG を返す
-- フォントアトラスを読み込み、LED ドットで「LED ● NEWS ● TICKER」をレンダリング
-- `bg` がサイト内パス（`/images/...`）の場合は背景画像を合成、外部 URL の場合は静的 `og.jpg` にフォールバック
-- `audio` パラメータがあると再生ボタンのオーバーレイを追加
-- SVG を組み立て、resvg-wasm で PNG にレンダリング
-- ミドルウェア（`_middleware.js`）がメインページへのリクエスト時に `og:image` メタタグを `/ogp?...` に書き換え
+`/ogp` エンドポイントがクエリパラメータ（`bg`, `normalColor`, `accentColor`, `sepColor`, `audio`）を受け取り、1200×630 の PNG を返します。内部ではフォントアトラスを読み込んで「LED ● NEWS ● TICKER」を LED ドットで描画し、SVG に組み立てたあと resvg-wasm で PNG にレンダリングしています。
+
+`bg` がサイト内パス（`/images/...`）の場合は背景画像を合成しますが、外部 URL の場合は静的な `og.jpg` にフォールバックします。`audio` パラメータがあると再生ボタンのオーバーレイが追加されます。
+
+ミドルウェア（`_middleware.js`）がメインページへのリクエスト時に `og:image` メタタグを `/ogp?...` に書き換えることで、各テーマに対応した OGP 画像が配信されます。
 
 ## テキストソース
 
-`src/sources/` 以下にソースを実装する。`Source` インターフェイスを実装し、`Scheduler` に登録すると自動的に流れる。
+`src/sources/` 以下にソースが実装されています。`Source` インターフェイスを実装して `Scheduler` に登録すると、テキストが自動的にティッカーに流れます。
 
 | ソース | 説明 |
-|--------|------|
+|---|---|
 | `SampleSource` | デモ用のサンプルテキスト |
-| `RssSource` | RSSフィードからニュース取得 |
-| `WebSocketSource` | WebSocket経由でリアルタイム受信 |
+| `RssSource` | RSS フィードからニュースを取得 |
+| `WebSocketSource` | WebSocket 経由でリアルタイムに受信 |
 
 ## セグメント
 
-テキストは `Segment` 単位で管理する。
+テキストは `Segment` 単位で管理されます。各セグメントはテキスト本文と表示ロール（`normal` / `accent` / `sep`）を持ちます。
 
 ```ts
 interface Segment {
@@ -133,17 +128,17 @@ interface Segment {
 ```
 
 | type | デフォルト色 | 用途 |
-|------|----|------|
+|---|---|---|
 | `normal` | グレー | 通常テキスト |
 | `accent` | 黄色 | 強調・見出し |
 | `sep` | 赤 | 区切り記号 |
 
 ### 色のカスタマイズ
 
-クエリパラメータで各ロールの色を `#rrggbb` 形式で上書きできる。
+クエリパラメータで各ロールの色を `#rrggbb` 形式で上書きできます。
 
 | パラメータ | 対象 | 例 |
-|-----------|------|-----|
+|---|---|---|
 | `normalColor` | 通常テキスト | `#00ff88` |
 | `accentColor` | 強調テキスト | `#ff00ff` |
 | `sepColor` | 区切り記号 | `#0088ff` |
@@ -151,10 +146,8 @@ interface Segment {
 
 ## ライセンス
 
-このリポジトリのコードは MIT ライセンス。
+このリポジトリのコードは MIT ライセンスのもとで公開しています。
 
 ### フォント
 
-`public/fonts/PixelMplus12-Regular.ttf` は [PixelMplus](https://github.com/itouhiro/PixelMplus)（作: itouhiro）を同梱したもの。
-
-**SIL Open Font License 1.1** のもと利用・配布可能。詳細は [OFL-1.1](https://scripts.sil.org/OFL) を参照。
+`public/fonts/PixelMplus12-Regular.ttf` は [PixelMplus](https://github.com/itouhiro/PixelMplus)（作: itouhiro）を同梱したものです。[SIL Open Font License 1.1](https://scripts.sil.org/OFL) のもとで利用・配布できます。
