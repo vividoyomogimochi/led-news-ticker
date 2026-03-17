@@ -540,6 +540,49 @@
           inset 0 0 12px rgba(255, 170, 0, 0.04);
         text-shadow: 0 0 8px var(--amber-glow-strong);
       }
+
+      /* ── Source type radio ── */
+      .source-type-row {
+        display: flex;
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .radio-label {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 10px 16px;
+        color: var(--amber-dim);
+        background: var(--surface);
+        transition: color 0.2s, background 0.2s, text-shadow 0.2s;
+        user-select: none;
+      }
+
+      .radio-label + .radio-label {
+        border-left: 1px solid var(--border);
+      }
+
+      .radio-label:has(input:checked) {
+        color: var(--amber);
+        background: rgba(255, 170, 0, 0.08);
+        text-shadow: 0 0 8px var(--amber-glow-strong);
+      }
+
+      .radio-label:hover:not(:has(input:checked)) {
+        color: #bb7700;
+      }
+
+      .radio-label input[type='radio'] {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -550,8 +593,7 @@
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="theme">Theme</button>
-      <button class="tab-btn" data-tab="rss">RSS</button>
-      <button class="tab-btn" data-tab="ws">WebSocket</button>
+      <button class="tab-btn" data-tab="customize">Customize</button>
     </div>
 
     <!-- Theme -->
@@ -572,32 +614,54 @@
       </div>
     </div>
 
-    <!-- RSS -->
-    <form class="panel" id="panel-rss">
+    <!-- Customize -->
+    <form class="panel" id="panel-customize">
       <div class="field">
-        <label for="rss-url">フィード URL</label>
-        <input id="rss-url" type="url" placeholder="https://example.com/feed.xml" />
+        <label>ソース種別</label>
+        <div class="source-type-row">
+          <label class="radio-label">
+            <input type="radio" name="source-type" value="rss" checked />
+            RSS
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="source-type" value="ws" />
+            WebSocket
+          </label>
+        </div>
       </div>
 
-      <div class="field">
-        <label for="rss-interval">取得間隔</label>
-        <div class="row">
-          <input id="rss-interval" type="number" min="1" value="5" />
-          <span class="unit">分</span>
+      <div id="cust-rss-fields">
+        <div class="field">
+          <label for="cust-rss-url">フィード URL</label>
+          <input id="cust-rss-url" type="url" placeholder="https://example.com/feed.xml" />
+        </div>
+        <div class="field">
+          <label for="cust-rss-interval">取得間隔</label>
+          <div class="row">
+            <input id="cust-rss-interval" type="number" min="1" value="5" />
+            <span class="unit">分</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="cust-ws-fields" style="display:none">
+        <div class="field">
+          <label for="cust-ws-url">WebSocket URL</label>
+          <input id="cust-ws-url" type="url" placeholder="ws://localhost:8080" />
         </div>
       </div>
 
       <hr class="divider" />
 
       <div class="field">
-        <label for="rss-bg">壁紙 URL</label>
-        <input id="rss-bg" type="text" placeholder="https://example.com/bg.jpg" />
+        <label for="cust-bg">壁紙 URL</label>
+        <input id="cust-bg" type="text" placeholder="https://example.com/bg.jpg" />
         <p class="hint">ページの背景に適用されます</p>
       </div>
 
       <div class="field">
-        <label for="rss-audio">BGM URL</label>
-        <input id="rss-audio" type="text" placeholder="https://example.com/audio.mp3" />
+        <label for="cust-audio">BGM URL</label>
+        <input id="cust-audio" type="text" placeholder="https://example.com/audio.mp3" />
         <p class="hint">ループ再生されます</p>
       </div>
 
@@ -606,65 +670,19 @@
       <div class="color-group">
         <p class="color-group-title">LED カラー（任意）</p>
         <div class="color-row">
-          <label for="rss-normalColor">通常</label>
-          <input id="rss-normalColor" type="color" value="#e0e0e0" />
-          <input id="rss-normalColor-hex" type="text" placeholder="#e0e0e0" />
+          <label for="cust-normalColor">通常</label>
+          <input id="cust-normalColor" type="color" value="#e0e0e0" />
+          <input id="cust-normalColor-hex" type="text" placeholder="#e0e0e0" />
         </div>
         <div class="color-row">
-          <label for="rss-accentColor">アクセント</label>
-          <input id="rss-accentColor" type="color" value="#ffdd33" />
-          <input id="rss-accentColor-hex" type="text" placeholder="#ffdd33" />
+          <label for="cust-accentColor">アクセント</label>
+          <input id="cust-accentColor" type="color" value="#ffdd33" />
+          <input id="cust-accentColor-hex" type="text" placeholder="#ffdd33" />
         </div>
         <div class="color-row">
-          <label for="rss-sepColor">区切り</label>
-          <input id="rss-sepColor" type="color" value="#cc2200" />
-          <input id="rss-sepColor-hex" type="text" placeholder="#cc2200" />
-        </div>
-        <p class="hint">空欄でデフォルト色を使用</p>
-      </div>
-
-      <button type="submit">ティッカーを開く →</button>
-    </form>
-
-    <!-- WebSocket -->
-    <form class="panel" id="panel-ws">
-      <div class="field">
-        <label for="ws-url">WebSocket URL</label>
-        <input id="ws-url" type="url" placeholder="ws://localhost:8080" />
-      </div>
-
-      <hr class="divider" />
-
-      <div class="field">
-        <label for="ws-bg">壁紙 URL</label>
-        <input id="ws-bg" type="text" placeholder="https://example.com/bg.jpg" />
-        <p class="hint">ページの背景に適用されます</p>
-      </div>
-
-      <div class="field">
-        <label for="ws-audio">BGM URL</label>
-        <input id="ws-audio" type="text" placeholder="https://example.com/audio.mp3" />
-        <p class="hint">ループ再生されます</p>
-      </div>
-
-      <hr class="divider" />
-
-      <div class="color-group">
-        <p class="color-group-title">LED カラー（任意）</p>
-        <div class="color-row">
-          <label for="ws-normalColor">通常</label>
-          <input id="ws-normalColor" type="color" value="#e0e0e0" />
-          <input id="ws-normalColor-hex" type="text" placeholder="#e0e0e0" />
-        </div>
-        <div class="color-row">
-          <label for="ws-accentColor">アクセント</label>
-          <input id="ws-accentColor" type="color" value="#ffdd33" />
-          <input id="ws-accentColor-hex" type="text" placeholder="#ffdd33" />
-        </div>
-        <div class="color-row">
-          <label for="ws-sepColor">区切り</label>
-          <input id="ws-sepColor" type="color" value="#cc2200" />
-          <input id="ws-sepColor-hex" type="text" placeholder="#cc2200" />
+          <label for="cust-sepColor">区切り</label>
+          <input id="cust-sepColor" type="color" value="#cc2200" />
+          <input id="cust-sepColor-hex" type="text" placeholder="#cc2200" />
         </div>
         <p class="hint">空欄でデフォルト色を使用</p>
       </div>
@@ -701,20 +719,33 @@
       const COLOR_KEYS = ['normalColor', 'accentColor', 'sepColor'];
       const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
-      for (const prefix of ['rss', 'ws']) {
-        for (const key of COLOR_KEYS) {
-          const picker = document.getElementById(prefix + '-' + key);
-          const hex = document.getElementById(prefix + '-' + key + '-hex');
-          picker.addEventListener('input', () => {
-            hex.value = picker.value === COLOR_DEFAULTS[key] ? '' : picker.value;
-            updatePreview();
-          });
-          hex.addEventListener('input', () => {
-            if (HEX_RE.test(hex.value)) picker.value = hex.value;
-            updatePreview();
-          });
-        }
+      for (const key of COLOR_KEYS) {
+        const picker = document.getElementById('cust-' + key);
+        const hex = document.getElementById('cust-' + key + '-hex');
+        picker.addEventListener('input', () => {
+          hex.value = picker.value === COLOR_DEFAULTS[key] ? '' : picker.value;
+          updatePreview();
+        });
+        hex.addEventListener('input', () => {
+          if (HEX_RE.test(hex.value)) picker.value = hex.value;
+          updatePreview();
+        });
       }
+
+      // ── Source type switch ──
+      function getSourceType() {
+        return document.querySelector('input[name="source-type"]:checked').value;
+      }
+
+      document.querySelectorAll('input[name="source-type"]').forEach((radio) => {
+        radio.addEventListener('change', () => {
+          const isWs = getSourceType() === 'ws';
+          document.getElementById('cust-rss-fields').style.display = isWs ? 'none' : '';
+          document.getElementById('cust-ws-fields').style.display = isWs ? '' : 'none';
+          syncDataInfo();
+          updatePreview();
+        });
+      });
 
       // Inject WS data info block after preview
       const wsInfoTemplate = document.getElementById('ws-data-info');
@@ -723,7 +754,7 @@
       previewEl.insertAdjacentElement('afterend', wsInfoEl);
 
       function syncDataInfo() {
-        wsInfoEl.style.display = activeTab === 'ws' ? '' : 'none';
+        wsInfoEl.style.display = (activeTab === 'customize' && getSourceType() === 'ws') ? '' : 'none';
       }
 
       document.querySelectorAll('.tab-btn').forEach((btn) => {
@@ -741,9 +772,9 @@
         });
       });
 
-      function appendColorParams(p, prefix) {
+      function appendColorParams(p) {
         for (const key of COLOR_KEYS) {
-          const hex = document.getElementById(prefix + '-' + key + '-hex').value.trim();
+          const hex = document.getElementById('cust-' + key + '-hex').value.trim();
           if (hex && HEX_RE.test(hex)) p.set(key, hex);
         }
       }
@@ -751,27 +782,23 @@
       function buildParams() {
         const p = new URLSearchParams();
         if (activeTab === 'theme') return p;
-        if (activeTab === 'rss') {
-          const url = document.getElementById('rss-url').value.trim();
-          const interval = Number(document.getElementById('rss-interval').value) || 5;
-          const bg = document.getElementById('rss-bg').value.trim();
+        const srcType = getSourceType();
+        const bg = document.getElementById('cust-bg').value.trim();
+        const audio = document.getElementById('cust-audio').value.trim();
+        if (srcType === 'rss') {
+          const url = document.getElementById('cust-rss-url').value.trim();
+          const interval = Number(document.getElementById('cust-rss-interval').value) || 5;
           p.set('type', 'rss');
           if (url) p.set('url', url);
           if (interval !== 5) p.set('interval', String(interval * 60 * 1000));
-          if (bg) p.set('bg', bg);
-          const audio = document.getElementById('rss-audio').value.trim();
-          if (audio) p.set('audio', audio);
-          appendColorParams(p, 'rss');
         } else {
-          const url = document.getElementById('ws-url').value.trim();
-          const bg = document.getElementById('ws-bg').value.trim();
-          const audio = document.getElementById('ws-audio').value.trim();
+          const url = document.getElementById('cust-ws-url').value.trim();
           p.set('type', 'ws');
           if (url) p.set('url', url);
-          if (bg) p.set('bg', bg);
-          if (audio) p.set('audio', audio);
-          appendColorParams(p, 'ws');
         }
+        if (bg) p.set('bg', bg);
+        if (audio) p.set('audio', audio);
+        appendColorParams(p);
         return p;
       }
 
@@ -956,35 +983,35 @@
 
       document.getElementById('theme-customize-btn').addEventListener('click', () => {
         const srcType = selectedSource?.params?.type;
-        const targetTab = srcType === 'ws' ? 'ws' : 'rss';
+        const isWs = srcType === 'ws';
+
+        // Set source type radio
+        document.querySelector('input[name="source-type"][value="' + (isWs ? 'ws' : 'rss') + '"]').checked = true;
+        document.getElementById('cust-rss-fields').style.display = isWs ? 'none' : '';
+        document.getElementById('cust-ws-fields').style.display = isWs ? '' : 'none';
 
         // Pre-fill source params
         if (selectedSource) {
           const sp = selectedSource.params;
-          if (targetTab === 'rss') {
-            document.getElementById('rss-url').value = sp.url || '';
-            if (sp.interval) document.getElementById('rss-interval').value = Math.round(Number(sp.interval) / 60000);
+          if (!isWs) {
+            document.getElementById('cust-rss-url').value = sp.url || '';
+            if (sp.interval) document.getElementById('cust-rss-interval').value = Math.round(Number(sp.interval) / 60000);
           } else {
-            document.getElementById('ws-url').value = sp.url || '';
+            document.getElementById('cust-ws-url').value = sp.url || '';
           }
         }
         // Pre-fill display params
         if (selectedDisplay) {
           const dp = selectedDisplay.params;
-          if (targetTab === 'rss') {
-            document.getElementById('rss-bg').value = dp.bg || '';
-            document.getElementById('rss-audio').value = dp.audio || '';
-          } else {
-            document.getElementById('ws-bg').value = dp.bg || '';
-            document.getElementById('ws-audio').value = dp.audio || '';
-          }
+          document.getElementById('cust-bg').value = dp.bg || '';
+          document.getElementById('cust-audio').value = dp.audio || '';
         }
         // Pre-fill color params from both source and display
         const allParams = { ...selectedSource?.params, ...selectedDisplay?.params };
         for (const key of COLOR_KEYS) {
           const val = allParams[key] || '';
-          const picker = document.getElementById(targetTab + '-' + key);
-          const hex = document.getElementById(targetTab + '-' + key + '-hex');
+          const picker = document.getElementById('cust-' + key);
+          const hex = document.getElementById('cust-' + key + '-hex');
           if (val && HEX_RE.test(val)) {
             picker.value = val;
             hex.value = val;
@@ -994,18 +1021,12 @@
           }
         }
 
-        document.querySelector('.tab-btn[data-tab="' + targetTab + '"]').click();
+        document.querySelector('.tab-btn[data-tab="customize"]').click();
       });
 
-      document.getElementById('panel-rss').addEventListener('input', updatePreview);
-      document.getElementById('panel-ws').addEventListener('input', updatePreview);
+      document.getElementById('panel-customize').addEventListener('input', updatePreview);
 
-      document.getElementById('panel-rss').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const qs = buildParams().toString();
-        location.href = '/' + (qs ? '?' + qs : '');
-      });
-      document.getElementById('panel-ws').addEventListener('submit', (e) => {
+      document.getElementById('panel-customize').addEventListener('submit', (e) => {
         e.preventDefault();
         const qs = buildParams().toString();
         location.href = '/' + (qs ? '?' + qs : '');
@@ -1017,34 +1038,39 @@
         const type = p.get('type');
         if (!type) { updatePreview(); loadThemes(); return; }
 
-        const tab = type === 'ws' ? 'ws' : 'rss';
+        const isWs = type === 'ws';
 
-        // Fill fields
-        if (tab === 'rss') {
-          if (p.has('url')) document.getElementById('rss-url').value = p.get('url');
+        // Set source type
+        document.querySelector('input[name="source-type"][value="' + (isWs ? 'ws' : 'rss') + '"]').checked = true;
+        document.getElementById('cust-rss-fields').style.display = isWs ? 'none' : '';
+        document.getElementById('cust-ws-fields').style.display = isWs ? '' : 'none';
+
+        // Fill source fields
+        if (!isWs) {
+          if (p.has('url')) document.getElementById('cust-rss-url').value = p.get('url');
           if (p.has('interval')) {
             const ms = Number(p.get('interval'));
-            if (ms > 0) document.getElementById('rss-interval').value = Math.round(ms / 60000);
+            if (ms > 0) document.getElementById('cust-rss-interval').value = Math.round(ms / 60000);
           }
-          if (p.has('bg')) document.getElementById('rss-bg').value = p.get('bg');
-          if (p.has('audio')) document.getElementById('rss-audio').value = p.get('audio');
         } else {
-          if (p.has('url')) document.getElementById('ws-url').value = p.get('url');
-          if (p.has('bg')) document.getElementById('ws-bg').value = p.get('bg');
-          if (p.has('audio')) document.getElementById('ws-audio').value = p.get('audio');
+          if (p.has('url')) document.getElementById('cust-ws-url').value = p.get('url');
         }
+
+        // Fill shared fields
+        if (p.has('bg')) document.getElementById('cust-bg').value = p.get('bg');
+        if (p.has('audio')) document.getElementById('cust-audio').value = p.get('audio');
 
         // Fill color fields
         for (const key of COLOR_KEYS) {
           const val = p.get(key);
           if (val && HEX_RE.test(val)) {
-            document.getElementById(tab + '-' + key).value = val;
-            document.getElementById(tab + '-' + key + '-hex').value = val;
+            document.getElementById('cust-' + key).value = val;
+            document.getElementById('cust-' + key + '-hex').value = val;
           }
         }
 
-        // Switch to the correct tab
-        document.querySelector('.tab-btn[data-tab="' + tab + '"]').click();
+        // Switch to customize tab
+        document.querySelector('.tab-btn[data-tab="customize"]').click();
       })();
 
       updatePreview();
