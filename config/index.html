@@ -1011,6 +1011,42 @@
         location.href = '/' + (qs ? '?' + qs : '');
       });
 
+      // ── Populate from query params ──
+      (function () {
+        const p = new URLSearchParams(location.search);
+        const type = p.get('type');
+        if (!type) { updatePreview(); loadThemes(); return; }
+
+        const tab = type === 'ws' ? 'ws' : 'rss';
+
+        // Fill fields
+        if (tab === 'rss') {
+          if (p.has('url')) document.getElementById('rss-url').value = p.get('url');
+          if (p.has('interval')) {
+            const ms = Number(p.get('interval'));
+            if (ms > 0) document.getElementById('rss-interval').value = Math.round(ms / 60000);
+          }
+          if (p.has('bg')) document.getElementById('rss-bg').value = p.get('bg');
+          if (p.has('audio')) document.getElementById('rss-audio').value = p.get('audio');
+        } else {
+          if (p.has('url')) document.getElementById('ws-url').value = p.get('url');
+          if (p.has('bg')) document.getElementById('ws-bg').value = p.get('bg');
+          if (p.has('audio')) document.getElementById('ws-audio').value = p.get('audio');
+        }
+
+        // Fill color fields
+        for (const key of COLOR_KEYS) {
+          const val = p.get(key);
+          if (val && HEX_RE.test(val)) {
+            document.getElementById(tab + '-' + key).value = val;
+            document.getElementById(tab + '-' + key + '-hex').value = val;
+          }
+        }
+
+        // Switch to the correct tab
+        document.querySelector('.tab-btn[data-tab="' + tab + '"]').click();
+      })();
+
       updatePreview();
       loadThemes();
     </script>
