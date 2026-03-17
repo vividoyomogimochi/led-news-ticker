@@ -24,9 +24,10 @@
       "params": {}
     },
     {
-      "id": "neon-drizzle",
-      "label": "Neon Drizzle",
+      "id": "neon-diner",
+      "label": "Neon Diner",
       "params": {
+        "bg": "/images/diner.jpg",
         "audio": "/music/Neon_Drizzle.mp3"
       }
     }
