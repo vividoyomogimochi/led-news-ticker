@@ -27,15 +27,5 @@
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
-    <script>
-      // Notify parent frame of our scroll height so the iframe can resize to fit
-      const ro = new ResizeObserver(() => {
-        const h = document.body.scrollHeight;
-        if (window.parent !== window) {
-          window.parent.postMessage({ type: 'ticker-height', height: h }, '*');
-        }
-      });
-      ro.observe(document.body);
-    </script>
   </body>
 </html>

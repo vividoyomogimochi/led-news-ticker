@@ -16,6 +16,7 @@
 }
 
 body {
+  visibility: visible !important;
   background-color: var(--bg);
   background-image: repeating-linear-gradient(
     0deg,

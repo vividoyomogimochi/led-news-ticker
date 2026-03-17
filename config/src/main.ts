@@ -1,4 +1,3 @@
-import '../style.css';
 import { initColorSync } from './color-sync';
 import { initSourceTypeSwitch, syncDataInfo } from './source-type';
 import { initTabs } from './tabs';

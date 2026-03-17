@@ -1,5 +1,3 @@
-import './style.css';
-
 // Forward query params to the ticker iframe
 const iframe = document.querySelector('iframe');
 if (iframe && location.search) {
@@ -8,7 +6,7 @@ if (iframe && location.search) {
 
 // Apply background-image from query param
 const _params = new URLSearchParams(location.search);
-const _bg = _params.get('bg') || '%VITE_DEFAULT_BG%';
+const _bg = _params.get('bg') || import.meta.env.VITE_DEFAULT_BG;
 if (_bg) {
   document.body.style.backgroundImage = `url("${_bg.replace(/"/g, '%22')}")`;
 }
@@ -67,8 +65,10 @@ if (_audioUrl) {
   });
 })();
 
+const frameContainer = document.querySelector('.frame-container') as HTMLElement | null;
 window.addEventListener('message', (e) => {
   if (e.data?.type === 'ticker-height') {
     if (iframe) iframe.style.height = e.data.height + 'px';
+    if (frameContainer) frameContainer.style.visibility = 'visible';
   }
 });

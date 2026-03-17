@@ -83,4 +83,12 @@ FontAtlas.load('/fonts/led-ticker-font-atlas.bin').then((atlas) => {
   const board = new LedBoard(canvas, atlas, { colors: colorOverrides });
   board.setRequestNext(() => scheduler.dequeue());
   board.start();
+
+  // Notify parent frame of height after canvas is properly sized
+  if (window.parent !== window) {
+    const ro = new ResizeObserver(() => {
+      window.parent.postMessage({ type: 'ticker-height', height: document.body.scrollHeight }, '*');
+    });
+    ro.observe(document.body);
+  }
 });
