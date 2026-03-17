@@ -1,6 +1,14 @@
 {
   "sources": [
     {
+      "id": "kyoko-np",
+      "label": "虚構新聞社",
+      "params": {
+        "type": "rss",
+        "url": "https://kyoko-np.net/index.xml"
+      }
+    },
+    {
       "id": "nhk-news",
       "label": "NHK ニュース",
       "params": {
@@ -14,6 +22,38 @@
       "params": {
         "type": "rss",
         "url": "https://zenn.dev/feed"
+      }
+    },
+    {
+      "id": "hatena-hot",
+      "label": "はてなブックマーク 人気エントリー 総合",
+      "params": {
+        "type": "rss",
+        "url": "https://b.hatena.ne.jp/hotentry.rss"
+      }
+    },
+    {
+      "id": "gigazine-news",
+      "label": "GIGAZINE",
+      "params": {
+        "type": "rss",
+        "url": "https://gigazine.net/news/rss_2.0/"
+      }
+    },
+    {
+      "id": "syosetu-news",
+      "label": "小説家になろう 作品更新情報",
+      "params": {
+        "type": "rss",
+        "url": "https://api.syosetu.com/allnovel.Atom"
+      }
+    },
+    {
+      "id": "bengo4-news",
+      "label": "弁護士ドットコムニュース",
+      "params": {
+        "type": "rss",
+        "url": "https://www.bengo4.com/api/topics/rss"
       }
     }
   ],

@@ -49,11 +49,10 @@ if (sourceUrl && sourceType === 'ws') {
     })
   );
 } else {
-  // Default: NHK RSS (needs CORS proxy in production)
   scheduler.register(
     new RssSource({
       id: 'nhk-world',
-      url: 'https://www.nhk.or.jp/rss/news/cat0.xml',
+      url: 'https://kyoko-np.net/index.xml',
       intervalMs: 5 * 60 * 1000,
       corsProxy: '/proxy?url=',
       segmentType: 'normal',
