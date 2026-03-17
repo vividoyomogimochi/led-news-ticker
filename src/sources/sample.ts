@@ -1,11 +1,11 @@
 import type { Source, Segment } from './types';
 
 const DEFAULT_ITEMS: Segment[] = [
-  { text: '【速報】 国内最大級の桜前線、今週末に東京へ到達見込み', type: 'yellow' },
+  { text: '【速報】 国内最大級の桜前線、今週末に東京へ到達見込み', type: 'accent' },
   { text: '春の交通安全週間が本日より開始　警察庁が注意を呼びかけ', type: 'normal' },
   {
     text: '【気象情報】 関東地方は週明けから気温低下の予報　最高気温12度まで下がる見通し',
-    type: 'yellow',
+    type: 'accent',
   },
   { text: '都内の鉄道各社、ダイヤ改正を来月より実施　終電時刻に変更', type: 'normal' },
   { text: '国際宇宙ステーションで新実験が開始　日本人飛行士も参加', type: 'normal' },

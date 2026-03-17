@@ -66,7 +66,7 @@ beforeAll(() => {
 });
 
 // LED dot grid = array of columns, each column is Int8Array of ROWS values
-// value >= 0: dot is on (0=normal, 1=yellow, 2=sep), -1: off
+// value >= 0: dot is on (0=normal, 1=accent, 2=sep), -1: off
 type LedFrame = Int8Array[];
 
 function captureFrame(
@@ -134,18 +134,18 @@ describe('StreamingBitmap LED dot frames', () => {
     expect(litDots).toBeGreaterThan(0);
   });
 
-  it('yellow segments produce type code 1 in lit dots', () => {
-    const segments: Segment[] = [{ text: 'ALERT', type: 'yellow' }];
+  it('accent segments produce type code 1 in lit dots', () => {
+    const segments: Segment[] = [{ text: 'ALERT', type: 'accent' }];
     const bitmap = new StreamingBitmap(segments, boardW, atlas);
 
-    let foundYellow = false;
-    for (let col = 0; col < bitmap.totalW && !foundYellow; col++) {
+    let foundAccent = false;
+    for (let col = 0; col < bitmap.totalW && !foundAccent; col++) {
       for (const v of bitmap.getColumn(col)) {
-        if (v === 1) { foundYellow = true; break; }
+        if (v === 1) { foundAccent = true; break; }
       }
     }
 
-    expect(foundYellow).toBe(true);
+    expect(foundAccent).toBe(true);
   });
 
   it('blank area before text has no lit dots', () => {

@@ -7,12 +7,33 @@ const STEP = DOT_PX + GAP_PX;
 const ROWS = 13;
 const SCROLL_MS = 1000 / 15; // 15px/sec (same as 60fps × FPS_DIV=4)
 
-const COLORS = {
+export interface LedColorEntry { dot: string; glow: string }
+
+export interface LedColorScheme {
+  normal: LedColorEntry;
+  accent: LedColorEntry;
+  sep: LedColorEntry;
+  off: string;
+}
+
+export const DEFAULT_COLORS: LedColorScheme = {
   normal: { dot: '#e0e0e0', glow: 'rgba(200,200,200,0.35)' },
-  yellow: { dot: '#ffdd33', glow: 'rgba(255,200,0,0.35)' },
+  accent: { dot: '#ffdd33', glow: 'rgba(255,200,0,0.35)' },
   sep: { dot: '#cc2200', glow: 'rgba(180,20,0,0.35)' },
   off: '#1e1e1e',
-} as const;
+};
+
+/** Parse a hex color (#rrggbb) into an rgba glow string */
+function hexToGlow(hex: string, alpha = 0.35): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+export function colorEntryFromHex(hex: string): LedColorEntry {
+  return { dot: hex, glow: hexToGlow(hex) };
+}
 
 interface CharEntry {
   codepoint: number;
@@ -34,7 +55,7 @@ export class StreamingBitmap {
     this.chars = [];
 
     for (const seg of segments) {
-      const typeCode = seg.type === 'yellow' ? 1 : seg.type === 'sep' ? 2 : 0;
+      const typeCode = seg.type === 'accent' ? 1 : seg.type === 'sep' ? 2 : 0;
       for (const ch of seg.text) {
         const cp = ch.codePointAt(0)!;
         const glyph = atlas.getGlyph(cp);
@@ -95,6 +116,7 @@ export class LedBoard {
   private ctx: CanvasRenderingContext2D;
   private boardW: number;
   private atlas: FontAtlas;
+  private colors: LedColorScheme;
   private bitmap: StreamingBitmap | null = null;
   private pendingBitmap: StreamingBitmap | null = null;
   private offset = 0;
@@ -103,10 +125,11 @@ export class LedBoard {
   private currentSegments: Segment[] = [];
   private resizeObserver: ResizeObserver;
 
-  constructor(canvas: HTMLCanvasElement, atlas: FontAtlas, width?: number) {
+  constructor(canvas: HTMLCanvasElement, atlas: FontAtlas, options?: { width?: number; colors?: Partial<LedColorScheme> }) {
     this.canvas = canvas;
     this.atlas = atlas;
-    this.boardW = width ?? canvas.parentElement?.clientWidth ?? 700;
+    this.colors = { ...DEFAULT_COLORS, ...options?.colors };
+    this.boardW = options?.width ?? canvas.parentElement?.clientWidth ?? 700;
     this.canvas.width = this.boardW;
     this.canvas.height = ROWS * STEP + GAP_PX * 2;
     this.ctx = canvas.getContext('2d')!;
@@ -168,9 +191,9 @@ export class LedBoard {
     const { totalW } = this.bitmap;
     const VISIBLE = Math.ceil(this.boardW / STEP);
 
-    type DotKind = 'normal' | 'yellow' | 'sep' | 'off';
+    type DotKind = 'normal' | 'accent' | 'sep' | 'off';
     const paths: Record<DotKind, { cx: number; cy: number }[]> = {
-      normal: [], yellow: [], sep: [], off: [],
+      normal: [], accent: [], sep: [], off: [],
     };
 
     for (let i = 0; i < VISIBLE; i++) {
@@ -185,7 +208,7 @@ export class LedBoard {
         const v = col[row];
 
         if (v >= 0) {
-          const key: DotKind = v === 1 ? 'yellow' : v === 2 ? 'sep' : 'normal';
+          const key: DotKind = v === 1 ? 'accent' : v === 2 ? 'sep' : 'normal';
           paths[key].push({ cx, cy });
         } else {
           paths.off.push({ cx, cy });
@@ -194,20 +217,21 @@ export class LedBoard {
     }
 
     const TWO_PI = Math.PI * 2;
-    for (const key of ['normal', 'yellow', 'sep'] as const) {
+    const colors = this.colors;
+    for (const key of ['normal', 'accent', 'sep'] as const) {
       const dots = paths[key];
       if (dots.length === 0) continue;
-      ctx.fillStyle = COLORS[key].glow;
+      ctx.fillStyle = colors[key].glow;
       ctx.beginPath();
       for (const { cx, cy } of dots) { ctx.moveTo(cx + DOT_PX * 1.0, cy); ctx.arc(cx, cy, DOT_PX * 1.0, 0, TWO_PI); }
       ctx.fill();
-      ctx.fillStyle = COLORS[key].dot;
+      ctx.fillStyle = colors[key].dot;
       ctx.beginPath();
       for (const { cx, cy } of dots) { ctx.moveTo(cx + DOT_PX * 0.44, cy); ctx.arc(cx, cy, DOT_PX * 0.44, 0, TWO_PI); }
       ctx.fill();
     }
     if (paths.off.length > 0) {
-      ctx.fillStyle = COLORS.off;
+      ctx.fillStyle = colors.off;
       ctx.beginPath();
       for (const { cx, cy } of paths.off) { ctx.moveTo(cx + DOT_PX * 0.33, cy); ctx.arc(cx, cy, DOT_PX * 0.33, 0, TWO_PI); }
       ctx.fill();

@@ -6,7 +6,7 @@
  *
  * 文字:
  *   # = 点灯 (normal)
- *   Y = 点灯 (yellow)
+ *   A = 点灯 (accent)
  *   R = 点灯 (sep/red)
  *   . = 消灯
  *
@@ -90,7 +90,7 @@ function frameToAscii(frame: LedFrame): string {
     let line = '';
     for (const col of frame) {
       const v = col[row];
-      if (v === 1) line += 'Y';
+      if (v === 1) line += 'A';
       else if (v === 2) line += 'R';
       else if (v >= 0) line += '#';
       else line += '.';
@@ -116,8 +116,8 @@ describe('StreamingBitmap LED dot snapshots', () => {
     expect(frameToAscii(frame)).toMatchSnapshot();
   });
 
-  it('yellow text renders with Y dots', () => {
-    const segments: Segment[] = [{ text: 'NEWS', type: 'yellow' }];
+  it('accent text renders with A dots', () => {
+    const segments: Segment[] = [{ text: 'NEWS', type: 'accent' }];
     const bitmap = new StreamingBitmap(segments, boardW, atlas);
     const frame = captureFrame(bitmap, boardW, 40);
     expect(frameToAscii(frame)).toMatchSnapshot();
@@ -132,7 +132,7 @@ describe('StreamingBitmap LED dot snapshots', () => {
 
   it('mixed segments render in correct order', () => {
     const segments: Segment[] = [
-      { text: 'ALERT', type: 'yellow' },
+      { text: 'ALERT', type: 'accent' },
       { text: ' ● ', type: 'sep' },
       { text: 'INFO', type: 'normal' },
     ];

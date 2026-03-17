@@ -205,7 +205,7 @@
 
         // Default mode: no meaningful params other than 'type' are set
         const _p = new URLSearchParams(location.search);
-        const _hasConfig = ['url', 'bg', 'audio', 'interval', 'segmentType'].some(k => _p.has(k));
+        const _hasConfig = ['url', 'bg', 'audio', 'interval', 'segmentType', 'normalColor', 'accentColor', 'sepColor', 'offColor'].some(k => _p.has(k));
         if (!_hasConfig) {
           btn.classList.add('visible', 'hint');
           const hintTimer = setTimeout(() => {

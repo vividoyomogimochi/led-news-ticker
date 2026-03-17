@@ -111,15 +111,26 @@ pnpm gen:thumbs   # public/themes/{id}.png を生成（display のみ）
 ```ts
 interface Segment {
   text: string;
-  type: 'normal' | 'yellow' | 'sep';
+  type: 'normal' | 'accent' | 'sep';
 }
 ```
 
-| type | 色 | 用途 |
+| type | デフォルト色 | 用途 |
 |------|----|------|
 | `normal` | グレー | 通常テキスト |
-| `yellow` | 黄色 | 強調・見出し |
+| `accent` | 黄色 | 強調・見出し |
 | `sep` | 赤 | 区切り記号 |
+
+### 色のカスタマイズ
+
+クエリパラメータで各ロールの色を `#rrggbb` 形式で上書きできる。
+
+| パラメータ | 対象 | 例 |
+|-----------|------|-----|
+| `normalColor` | 通常テキスト | `#00ff88` |
+| `accentColor` | 強調テキスト | `#ff00ff` |
+| `sepColor` | 区切り記号 | `#0088ff` |
+| `offColor` | 消灯ドット | `#333333` |
 
 ## ライセンス
 

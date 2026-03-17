@@ -1,5 +1,6 @@
 import { Scheduler } from './scheduler';
-import { LedBoard } from './led-board';
+import { LedBoard, colorEntryFromHex } from './led-board';
+import type { LedColorScheme } from './led-board';
 import { FontAtlas } from './font-atlas';
 import { RssSource, WebSocketSource } from './sources';
 import type { Segment, SegmentType } from './sources';
@@ -9,6 +10,20 @@ const params = new URLSearchParams(location.search);
 const sourceType = params.get('type') ?? 'rss';
 const sourceUrl = params.get('url');
 const segmentType = (params.get('segmentType') as SegmentType | null) ?? 'normal';
+
+// ── Color overrides from query ────────────────────────────
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+const colorOverrides: Partial<LedColorScheme> = {};
+for (const role of ['normal', 'accent', 'sep'] as const) {
+  const hex = params.get(`${role}Color`);
+  if (hex && HEX_RE.test(hex)) {
+    colorOverrides[role] = colorEntryFromHex(hex);
+  }
+}
+const offHex = params.get('offColor');
+if (offHex && HEX_RE.test(offHex)) {
+  colorOverrides.off = offHex;
+}
 
 // ── Sources ──────────────────────────────────────────────
 const scheduler = new Scheduler({ fallbackText: 'LED News Ticker Headline' });
@@ -64,7 +79,7 @@ if (sourceUrl && sourceType === 'ws') {
 const canvas = document.getElementById('ledCanvas') as HTMLCanvasElement;
 
 FontAtlas.load('/fonts/led-ticker-font-atlas.bin').then((atlas) => {
-  const board = new LedBoard(canvas, atlas);
+  const board = new LedBoard(canvas, atlas, { colors: colorOverrides });
   board.start();
   scheduler.setOnUpdate((segments) => {
     board.setSegments(segments);

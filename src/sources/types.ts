@@ -1,4 +1,4 @@
-export type SegmentType = 'normal' | 'yellow' | 'sep';
+export type SegmentType = 'normal' | 'accent' | 'sep';
 
 export interface Segment {
   text: string;
