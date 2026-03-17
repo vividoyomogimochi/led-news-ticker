@@ -1,8 +1,20 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { readFileSync } from 'fs';
+import { Marked } from 'marked';
+
+const helpMd = readFileSync(resolve(__dirname, 'content/help.md'), 'utf-8');
+const marked = new Marked();
+const helpHtml = marked.parse(helpMd) as string;
 
 export default defineConfig({
   plugins: [
+    {
+      name: 'inject-help-content',
+      transformIndexHtml(html) {
+        return html.replace('<!--HELP_CONTENT-->', helpHtml);
+      },
+    },
     {
       name: 'rss-proxy',
       configureServer(server) {

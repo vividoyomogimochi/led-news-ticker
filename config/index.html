@@ -583,6 +583,84 @@
       .radio-label input[type='radio'] {
         display: none;
       }
+
+      /* ── Help content ── */
+      .help-content h1,
+      .help-content h2,
+      .help-content h3 {
+        font-family: 'Orbitron', sans-serif;
+        color: var(--amber);
+        text-shadow: 0 0 8px var(--amber-glow);
+      }
+
+      .help-content h1 {
+        font-size: 1.1rem;
+        font-weight: 400;
+        letter-spacing: 0.1em;
+      }
+
+      .help-content h2 {
+        font-size: 0.9rem;
+        font-weight: 400;
+        letter-spacing: 0.1em;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 6px;
+      }
+
+      .help-content h3 {
+        font-size: 0.82rem;
+        font-weight: 400;
+        letter-spacing: 0.08em;
+      }
+
+      .help-content p,
+      .help-content li {
+        font-size: 0.88rem;
+        line-height: 1.6;
+        color: var(--amber-dim);
+      }
+
+      .help-content ol,
+      .help-content ul {
+        padding-left: 1.5em;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .help-content a {
+        color: var(--amber);
+        text-decoration: none;
+        transition: text-shadow 0.2s;
+      }
+
+      .help-content a:hover {
+        text-shadow: 0 0 8px var(--amber-glow-strong);
+      }
+
+      .help-content code {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.85rem;
+        color: var(--amber);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        padding: 1px 5px;
+      }
+
+      .help-content strong {
+        color: var(--amber);
+        font-weight: normal;
+      }
+
+      .help-content .contact {
+        font-size: 0.85rem;
+        color: var(--amber-dim);
+      }
+
+      .help-content .contact a {
+        color: var(--amber);
+      }
     </style>
   </head>
   <body>
@@ -594,6 +672,7 @@
     <div class="tabs">
       <button class="tab-btn active" data-tab="theme">Theme</button>
       <button class="tab-btn" data-tab="customize">Customize</button>
+      <button class="tab-btn" data-tab="help">Help</button>
     </div>
 
     <!-- Theme -->
@@ -689,6 +768,12 @@
 
       <button type="submit">ティッカーを開く →</button>
     </form>
+
+    <!-- Help -->
+    <div class="panel help-content" id="panel-help">
+      <!--HELP_CONTENT-->
+      <template id="contact-section"><hr class="divider" /><div class="contact"><p>お問い合わせ: <a href="mailto:%VITE_CONTACT%">%VITE_CONTACT%</a></p></div></template>
+    </div>
 
     <div class="preview" id="preview"></div>
 
@@ -803,6 +888,7 @@
       }
 
       function updatePreview() {
+        previewEl.style.display = activeTab === 'help' ? 'none' : '';
         if (activeTab === 'theme') {
           const qs = buildThemeParams().toString();
           const href = '/' + (qs ? '?' + qs : '');
@@ -1071,6 +1157,20 @@
 
         // Switch to customize tab
         document.querySelector('.tab-btn[data-tab="customize"]').click();
+      })();
+
+      // ── Help: inject contact if configured ──
+      (function () {
+        const contactTpl = document.getElementById('contact-section');
+        const helpPanel = document.getElementById('panel-help');
+        const contactHtml = contactTpl.innerHTML;
+        // Vite replaces %VITE_CONTACT% at build time; if empty, skip
+        if (/mailto:[^"]+/.test(contactHtml)) {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = contactHtml;
+          helpPanel.appendChild(tmp.querySelector('.divider'));
+          helpPanel.appendChild(tmp.querySelector('.contact'));
+        }
       })();
 
       updatePreview();
