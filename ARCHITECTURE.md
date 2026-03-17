@@ -1,0 +1,98 @@
+# Architecture
+
+LED News Ticker は Vite + TypeScript で構築された、ビットマップフォントベースの LED 風ニュースティッカー。3 つの HTML エントリポイント（メインフレーム・ティッカー・設定画面）で構成される。
+
+## エントリポイント
+
+```
+index.html          メインフレーム（iframe でティッカーを埋め込む）
+ticker/index.html   ティッカー本体（canvas 描画）
+config/index.html   設定 UI（テーマ選択・カスタマイズ・ヘルプ）
+```
+
+Vite の `build.rollupOptions.input` に 3 つとも登録済み。
+
+## ディレクトリ構成
+
+```
+src/                        ティッカーのコアロジック
+  main.ts                     エントリポイント（パラメータ解析・ソース登録・描画開始）
+  led-board.ts                LedBoard クラス（canvas 描画・スクロール・リサイズ）
+  streaming-bitmap.ts         StreamingBitmap クラス（文字列→ビットマップ列データ）
+  led-colors.ts               LED カラースキーム型・デフォルト色・hex→glow 変換
+  font-atlas.ts               FontAtlas クラス（ビルド済みバイナリからグリフ読み込み）
+  scheduler.ts                メッセージキュー（TTL 管理・フォールバック・重複排除）
+  sources/
+    types.ts                    Segment / Source インターフェース
+    rss.ts                      RSS フィードソース
+    websocket.ts                WebSocket ソース
+    sample.ts                   サンプルデータソース
+
+frame/                      メインフレームの UI
+  style.css                   CSS
+  main.ts                     iframe 転送・背景画像・BGM・設定ボタン制御
+
+config/                     設定画面の UI
+  style.css                   CSS
+  src/
+    main.ts                     エントリポイント（各モジュール初期化）
+    state.ts                    共有状態（activeTab / selectedSource / selectedDisplay）
+    constants.ts                カラーデフォルト・HEX 正規表現・SVG アイコン
+    tabs.ts                     タブ切り替え
+    color-sync.ts               カラーピッカー ↔ HEX フィールド双方向同期
+    source-type.ts              RSS/WebSocket ラジオ切り替え・WS data info 表示
+    preview.ts                  プレビュー URL 生成（buildParams / buildThemeParams）
+    theme.ts                    テーマ読み込み・カード配置・ボタンハンドラ
+    theme-card.ts               テーマカード DOM 生成
+    audio-preview.ts            テーマ音声プレビュー（再生・フェードアウト・停止）
+    populate.ts                 クエリパラメータ → フォーム初期値セット
+    help.ts                     Contact セクション条件付き注入
+
+content/
+  help.md                     ヘルプページの Markdown ソース（ビルド時に HTML 変換）
+
+functions/
+  proxy.js                    Cloudflare Functions の CORS プロキシ
+
+scripts/
+  build-font-atlas.mjs        PixelMplus12 フォントからバイナリアトラス生成
+  gen-theme-thumbnails.mjs     テーマサムネイル画像生成
+  ws-test-server.mjs           開発用 WebSocket テストサーバー
+```
+
+## データフロー
+
+```
+[RSS/WebSocket/Sample Source]
+        │
+        ▼
+   Scheduler（キュー蓄積・TTL 管理）
+        │
+        ▼  dequeue()
+   LedBoard（スクロール制御）
+        │
+        ▼  requestNext trigger
+   StreamingBitmap（FontAtlas でグリフ→ビット列変換）
+        │
+        ▼
+   Canvas 描画（dot/glow 2 パスレンダリング）
+```
+
+## CSS 読み込み戦略
+
+CSS は `<link rel="stylesheet">` で読み込む（レンダリングブロック）。FOUC 防止のため、各 HTML にインラインの最小限スタイルを記述：
+
+- `index.html`: `body` 背景色、`#settings-btn` 非表示、`.frame-container` 非表示
+- `config/index.html`: `body` 背景色 + `visibility:hidden`（CSS 側で `visible !important` で解除）
+
+iframe のリサイズちらつき防止として、ResizeObserver は LedBoard 初期化後に開始する。
+
+## ビルド
+
+```bash
+pnpm build          # tsc + vite build
+pnpm dev            # 開発サーバー
+pnpm vitest run     # テスト実行
+```
+
+`vite.config.ts` の `inject-help-content` プラグインが `content/help.md` を Markdown→HTML 変換し、`config/index.html` の `<!--HELP_CONTENT-->` に注入する。
