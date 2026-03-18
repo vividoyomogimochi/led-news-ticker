@@ -155,6 +155,10 @@ interface Segment {
 | `sepColor` | 区切り記号 | `#0088ff` |
 | `offColor` | 消灯ドット | `#333333` |
 
+## Windows デスクトップアプリ
+
+[app-top-bar](https://github.com/vividoyomogimochi/app-top-bar) を使うと、このティッカーを Windows デスクトップの上端に AppBar として常駐させることができます。フレームレス＆最前面で表示され、マルチモニタ切り替えやバーの高さ調整にも対応しています。
+
 ## ライセンス
 
 このリポジトリのコードは MIT ライセンスのもとで公開しています。
