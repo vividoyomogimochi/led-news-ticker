@@ -28,9 +28,12 @@ src/                        ティッカーのコアロジック
     websocket.ts                WebSocket ソース
     sample.ts                   サンプルデータソース
 
+lib/                        共有ユーティリティ
+  pack.ts                     シェア URL エンコーダー（deflate + base64url）
+
 frame/                      メインフレームの UI
   style.css                   CSS
-  main.ts                     iframe 転送・背景画像・BGM・設定ボタン制御
+  main.ts                     iframe 転送・背景画像・BGM・設定/シェアボタン制御
 
 config/                     設定画面の UI
   style.css                   CSS
@@ -55,6 +58,7 @@ functions/
   _middleware.js               メインページの og:image をクエリに応じて動的書き換え
   ogp.js                      OGP 画像生成（SVG 組み立て → resvg-wasm で PNG 出力）
   proxy.js                    Cloudflare Functions の CORS プロキシ
+  s/[[path]].js               シェア URL デコーダー（/s/<packed> → /?params に 302 リダイレクト）
 
 scripts/
   build-font-atlas.mjs        PixelMplus12 フォントからバイナリアトラス生成
@@ -119,3 +123,24 @@ Cloudflare Pages Functions で動的 OGP 画像を生成する。
 ```
 
 外部 bg URL の場合はリモートフェッチを避け、静的 `/images/og.jpg` をそのまま返す。
+
+## シェア URL
+
+クエリパラメータを圧縮した短縮 URL でティッカーをシェアできる。
+
+```
+エンコード（lib/pack.ts）:
+  URLSearchParams → 短縮キー JSON → deflate-raw → base64url → "1" + payload
+
+デコード（functions/s/[[path]].js）:
+  /s/1<payload>
+       │
+       ▼  base64url → inflate → JSON → URLSearchParams
+  302 → /?type=rss&url=...
+       │
+       ▼  _middleware.js（OGP 書き換え）
+  通常のティッカーページとして表示
+```
+
+バージョンプレフィックス: `1` = deflate 圧縮、`0` = 非圧縮（フォールバック）。
+デコード後のペイロードサイズ上限は 2 KB。

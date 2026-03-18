@@ -33,10 +33,11 @@ if (_audioUrl) {
   });
 }
 
-// Settings button: show on corner hover/tap, hide on click elsewhere
+// Settings & share buttons: show on corner hover/tap, hide on click elsewhere
 (function () {
   const corner = document.getElementById('settings-corner')!;
   const btn = document.getElementById('settings-btn')!;
+  const shareBtn = document.getElementById('share-btn')!;
 
   // Default mode: no meaningful params other than 'type' are set
   const _p = new URLSearchParams(location.search);
@@ -52,6 +53,7 @@ if (_audioUrl) {
   corner.addEventListener('touchstart', (e) => {
     if (!btn.classList.contains('visible')) {
       btn.classList.add('visible');
+      shareBtn.classList.add('visible');
       btn.classList.remove('hint');
       e.preventDefault(); // suppress the follow-up click so navigation doesn't fire immediately
       e.stopPropagation();
@@ -62,6 +64,23 @@ if (_audioUrl) {
 
   document.addEventListener('click', () => {
     btn.classList.remove('visible', 'hint');
+    shareBtn.classList.remove('visible');
+  });
+
+  // Share button
+  shareBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const host = import.meta.env.VITE_HOST || location.origin;
+    let shareUrl: string;
+    if (location.search) {
+      const { packParams } = await import('../lib/pack');
+      const packed = await packParams(new URLSearchParams(location.search));
+      shareUrl = host + '/s/' + packed;
+    } else {
+      shareUrl = host + '/';
+    }
+    const cosharetUrl = 'https://cosharet.pages.dev/#text=' + encodeURIComponent('LED News Ticker') + '&url=' + encodeURIComponent(shareUrl);
+    window.open(cosharetUrl, '_blank', 'noopener');
   });
 })();
 

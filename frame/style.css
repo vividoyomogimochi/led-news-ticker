@@ -75,12 +75,12 @@ iframe {
   bottom: 0;
   right: 0;
   width: 80px;
-  height: 80px;
+  height: 130px;
   z-index: 1000;
 }
-#settings-btn {
+#settings-btn,
+#share-btn {
   position: absolute;
-  bottom: 14px;
   right: 14px;
   width: 42px;
   height: 42px;
@@ -99,18 +99,32 @@ iframe {
   pointer-events: none;
   backdrop-filter: blur(6px);
 }
+#settings-btn {
+  bottom: 14px;
+}
+#share-btn {
+  bottom: 64px;
+}
 #settings-corner:hover #settings-btn,
 #settings-btn.visible {
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
 }
-#settings-btn:hover {
+#settings-corner:hover #share-btn,
+#share-btn.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+#settings-btn:hover,
+#share-btn:hover {
   border-color: rgba(255, 170, 0, 0.85);
   color: #ffcc33;
   background: rgba(40, 28, 0, 0.92);
 }
-#settings-btn svg {
+#settings-btn svg,
+#share-btn svg {
   width: 20px;
   height: 20px;
 }

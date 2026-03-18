@@ -96,6 +96,17 @@ pnpm gen:thumbs
 2. **Display** のグリッドからカードをクリックして表示設定を選ぶ（audio があるカードは選択時に 3 秒間プレビュー再生されます）
 3. プレビュー URL を確認し、**ティッカーを開く** か **カスタマイズ**（RSS/WS タブへパラメータを引き継いで移動）を選ぶ
 
+## シェア URL
+
+ティッカーの URL クエリパラメータを deflate + base64url で圧縮した短縮 URL を生成できます。メイン画面右下のシェアボタン（設定ボタンの上）を押すと、[cosharet](https://cosharet.pages.dev/) 経由で SNS にシェアできます。
+
+```
+通常:  /?type=rss&url=https%3A%2F%2F...&normalColor=%23e0e0e0
+短縮:  /s/1eSyrOL0oIS0pqSS1KAXIAAA
+```
+
+`/s/<packed>` にアクセスすると Cloudflare Pages Function がデコードし、元のクエリパラメータ付き URL に 302 リダイレクトします。エンコードは難読化であり暗号化ではありません。デコード後のペイロードサイズは 2 KB に制限されています。
+
 ## OGP 画像
 
 Cloudflare Pages Functions を使い、ティッカーの URL に応じた OGP 画像を動的に生成します。SNS でシェアすると、テーマに合わせたプレビューが表示されます。
