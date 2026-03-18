@@ -648,3 +648,12 @@ button[type='submit']:hover {
   color: var(--amber-dim);
   text-align: right;
 }
+
+.help-version a {
+  color: var(--amber-dim);
+  text-decoration: underline;
+}
+
+.help-version a:hover {
+  color: var(--amber);
+}
