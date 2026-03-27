@@ -64,6 +64,10 @@
             <input type="radio" name="source-type" value="ws" />
             WebSocket
           </label>
+          <label class="radio-label">
+            <input type="radio" name="source-type" value="sse" />
+            SSE
+          </label>
         </div>
       </div>
 
@@ -85,6 +89,13 @@
         <div class="field">
           <label for="cust-ws-url">WebSocket URL</label>
           <input id="cust-ws-url" type="url" placeholder="ws://localhost:8080" />
+        </div>
+      </div>
+
+      <div id="cust-sse-fields" style="display:none">
+        <div class="field">
+          <label for="cust-sse-url">SSE URL</label>
+          <input id="cust-sse-url" type="url" placeholder="http://localhost:8080/events" />
         </div>
       </div>
 
@@ -134,6 +145,24 @@
     </div>
 
     <div class="preview" id="preview"></div>
+
+    <template id="sse-data-info">
+      <div class="data-info">
+        <p class="data-info-title">受信データ形式（SSE）</p>
+        <div class="data-block">
+          <p class="data-block-label">JSON（推奨）</p>
+          <pre><code>data: { "text": "表示テキスト", "type": "normal" }</code></pre>
+          <p class="hint">
+            <code>type</code> は省略可。<br />値: <code>normal</code> / <code>accent</code>
+          </p>
+        </div>
+        <div class="data-block">
+          <p class="data-block-label">プレーンテキスト</p>
+          <pre><code>data: 表示テキスト</code></pre>
+          <p class="hint">JSON でない文字列はそのまま表示。</p>
+        </div>
+      </div>
+    </template>
 
     <template id="ws-data-info">
       <div class="data-info">

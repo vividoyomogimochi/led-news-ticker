@@ -15,7 +15,8 @@
     "format": "prettier --write src *.config.ts",
     "format:check": "prettier --check src *.config.ts",
     "test": "vitest run",
-    "ws-test-server": "node scripts/ws-test-server.mjs"
+    "ws-test-server": "node scripts/ws-test-server.mjs",
+    "sse-test-server": "node scripts/sse-test-server.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

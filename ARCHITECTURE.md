@@ -26,6 +26,7 @@ src/                        ティッカーのコアロジック
     types.ts                    Segment / Source インターフェース
     rss.ts                      RSS フィードソース
     websocket.ts                WebSocket ソース
+    sse.ts                      SSE（Server-Sent Events）ソース
     sample.ts                   サンプルデータソース
 
 lib/                        共有ユーティリティ
@@ -43,7 +44,7 @@ config/                     設定画面の UI
     constants.ts                カラーデフォルト・HEX 正規表現・SVG アイコン
     tabs.ts                     タブ切り替え
     color-sync.ts               カラーピッカー ↔ HEX フィールド双方向同期
-    source-type.ts              RSS/WebSocket ラジオ切り替え・WS data info 表示
+    source-type.ts              RSS/WebSocket/SSE ラジオ切り替え・data info 表示
     preview.ts                  プレビュー URL 生成（buildParams / buildThemeParams）
     theme.ts                    テーマ読み込み・カード配置・ボタンハンドラ
     theme-card.ts               テーマカード DOM 生成
@@ -64,12 +65,13 @@ scripts/
   build-font-atlas.mjs        PixelMplus12 フォントからバイナリアトラス生成
   gen-theme-thumbnails.mjs     テーマサムネイル画像生成
   ws-test-server.mjs           開発用 WebSocket テストサーバー
+  sse-test-server.mjs          開発用 SSE テストサーバー
 ```
 
 ## データフロー
 
 ```
-[RSS/WebSocket/Sample Source]
+[RSS/WebSocket/SSE/Sample Source]
         │
         ▼
    Scheduler（キュー蓄積・TTL 管理）

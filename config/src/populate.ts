@@ -6,17 +6,18 @@ export function populateFromQueryParams(): void {
   const type = p.get('type');
   if (!type) return;
 
-  const isWs = type === 'ws';
-  setSourceType(isWs ? 'ws' : 'rss');
+  setSourceType(type === 'ws' ? 'ws' : type === 'sse' ? 'sse' : 'rss');
 
-  if (!isWs) {
+  if (type === 'rss') {
     if (p.has('url')) (document.getElementById('cust-rss-url') as HTMLInputElement).value = p.get('url')!;
     if (p.has('interval')) {
       const ms = Number(p.get('interval'));
       if (ms > 0) (document.getElementById('cust-rss-interval') as HTMLInputElement).value = String(Math.round(ms / 60000));
     }
-  } else {
+  } else if (type === 'ws') {
     if (p.has('url')) (document.getElementById('cust-ws-url') as HTMLInputElement).value = p.get('url')!;
+  } else if (type === 'sse') {
+    if (p.has('url')) (document.getElementById('cust-sse-url') as HTMLInputElement).value = p.get('url')!;
   }
 
   if (p.has('bg')) (document.getElementById('cust-bg') as HTMLInputElement).value = p.get('bg')!;

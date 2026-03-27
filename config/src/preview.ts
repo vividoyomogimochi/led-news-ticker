@@ -21,9 +21,13 @@ export function buildParams(): URLSearchParams {
     p.set('type', 'rss');
     if (url) p.set('url', url);
     if (interval !== 5) p.set('interval', String(interval * 60 * 1000));
-  } else {
+  } else if (srcType === 'ws') {
     const url = (document.getElementById('cust-ws-url') as HTMLInputElement).value.trim();
     p.set('type', 'ws');
+    if (url) p.set('url', url);
+  } else if (srcType === 'sse') {
+    const url = (document.getElementById('cust-sse-url') as HTMLInputElement).value.trim();
+    p.set('type', 'sse');
     if (url) p.set('url', url);
   }
   if (bg) p.set('bg', bg);

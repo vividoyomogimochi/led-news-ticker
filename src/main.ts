@@ -3,7 +3,7 @@ import { LedBoard } from './led-board';
 import { colorEntryFromHex } from './led-colors';
 import type { LedColorScheme } from './led-colors';
 import { FontAtlas } from './font-atlas';
-import { RssSource, WebSocketSource } from './sources';
+import { RssSource, WebSocketSource, SseSource } from './sources';
 import type { Segment, SegmentType } from './sources';
 
 // ── Query params ──────────────────────────────────────────
@@ -33,6 +33,30 @@ if (sourceUrl && sourceType === 'ws') {
   scheduler.register(
     new WebSocketSource({
       id: 'query-ws',
+      url: sourceUrl,
+      parseMessage: (event: MessageEvent): Segment | null => {
+        const data = event.data as string;
+        try {
+          const obj = JSON.parse(data) as { text?: string; type?: string };
+          if (typeof obj.text === 'string') {
+            return {
+              text: obj.text,
+              type: (obj.type as SegmentType) ?? segmentType,
+            };
+          }
+        } catch {
+          // plain text fallback
+        }
+        return typeof data === 'string' && data.trim()
+          ? { text: data.trim(), type: segmentType }
+          : null;
+      },
+    })
+  );
+} else if (sourceUrl && sourceType === 'sse') {
+  scheduler.register(
+    new SseSource({
+      id: 'query-sse',
       url: sourceUrl,
       parseMessage: (event: MessageEvent): Segment | null => {
         const data = event.data as string;
