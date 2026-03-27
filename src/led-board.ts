@@ -88,7 +88,9 @@ export class LedBoard {
     if (newW === this.boardW || newW === 0) return;
     this.boardW = newW;
     this.canvas.width = newW;
-    this.initFirst();
+    // Keep current bitmap and scroll position – only the viewport width changes.
+    // If no bitmap exists yet, try to initialise one.
+    if (!this.bitmap) this.initFirst();
   }
 
   start(): void {
