@@ -27,7 +27,7 @@ if (offHex && HEX_RE.test(offHex)) {
 }
 
 // ── Sources ──────────────────────────────────────────────
-const scheduler = new Scheduler({ fallbackText: 'LED News Ticker Headline' });
+const scheduler = new Scheduler();
 
 if (sourceUrl && sourceType === 'ws') {
   scheduler.register(
@@ -105,13 +105,16 @@ const canvas = document.getElementById('ledCanvas') as HTMLCanvasElement;
 
 FontAtlas.load('/fonts/led-ticker-font-atlas.bin').then((atlas) => {
   const board = new LedBoard(canvas, atlas, { colors: colorOverrides });
+  const isStreaming = sourceType === 'ws' || sourceType === 'sse';
+  const fallback: Segment = { text: 'LED News Ticker Headline', type: 'normal' };
   board.setRequestNext(() => {
     // Skip messages containing characters the font cannot render
     for (let i = 0; i < 16; i++) {
       const seg = scheduler.dequeue();
+      if (!seg) return isStreaming ? null : fallback;
       if (atlas.canRender(seg.text)) return seg;
     }
-    return scheduler.fallbackSegment;
+    return isStreaming ? null : fallback;
   });
   board.start();
 

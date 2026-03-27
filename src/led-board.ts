@@ -22,9 +22,10 @@ export class LedBoard {
   private lastDrawTime = 0;
   private rafId: number | null = null;
   private resizeObserver: ResizeObserver;
-  private requestNext: (() => Segment) | null = null;
+  private requestNext: (() => Segment | null) | null = null;
   private triggerCol = 0;
   private triggered = false;
+  private stalled = false;
 
   constructor(canvas: HTMLCanvasElement, atlas: FontAtlas, options?: { width?: number; colors?: Partial<LedColorScheme> }) {
     this.canvas = canvas;
@@ -39,7 +40,7 @@ export class LedBoard {
     this.resizeObserver.observe(canvas.parentElement ?? canvas);
   }
 
-  setRequestNext(cb: () => Segment): void {
+  setRequestNext(cb: () => Segment | null): void {
     this.requestNext = cb;
   }
 
@@ -47,9 +48,13 @@ export class LedBoard {
   private initFirst(): void {
     if (!this.requestNext) return;
     const segment = this.requestNext();
+    if (!segment) {
+      // Nothing available yet – stay blank and retry on next frame
+      this.bitmap = null;
+      return;
+    }
     this.bitmap = new StreamingBitmap([segment], this.boardW, this.atlas);
     this.triggerCol = this.bitmap.totalW;
-    this.bitmap.append([SEP_SEGMENT]);
     this.offset = this.boardW - Math.ceil(this.boardW / STEP);
     this.triggered = false;
   }
@@ -58,9 +63,23 @@ export class LedBoard {
   private appendNext(): void {
     if (!this.requestNext || !this.bitmap) return;
     const segment = this.requestNext();
+    if (!segment) {
+      // Nothing available – stall scrolling at the bitmap edge
+      this.stalled = true;
+      return;
+    }
+    if (this.stalled) {
+      // Insert a screen-wide gap so the new content enters from the right edge
+      const VISIBLE = Math.ceil(this.boardW / STEP);
+      const gap = this.offset + VISIBLE - this.bitmap.totalW;
+      if (gap > 0) this.bitmap.appendGap(gap);
+    } else {
+      // Separate from previous content
+      this.bitmap.append([SEP_SEGMENT]);
+    }
+    this.stalled = false;
     this.bitmap.append([segment]);
     this.triggerCol = this.bitmap.totalW;
-    this.bitmap.append([SEP_SEGMENT]);
     this.triggered = false;
   }
 
@@ -89,6 +108,25 @@ export class LedBoard {
     this.resizeObserver.disconnect();
   }
 
+  /** Render all LEDs in the off state (no active content). */
+  private drawAllOff(): void {
+    const { ctx } = this;
+    const VISIBLE = Math.ceil(this.boardW / STEP);
+    const TWO_PI = Math.PI * 2;
+    ctx.fillStyle = this.colors.off;
+    ctx.beginPath();
+    for (let i = 0; i < VISIBLE; i++) {
+      const px = i * STEP;
+      for (let row = 0; row < ROWS; row++) {
+        const cx = px + DOT_PX / 2;
+        const cy = GAP_PX + row * STEP + DOT_PX / 2;
+        ctx.moveTo(cx + DOT_PX * 0.33, cy);
+        ctx.arc(cx, cy, DOT_PX * 0.33, 0, TWO_PI);
+      }
+    }
+    ctx.fill();
+  }
+
   private draw(timestamp: number): void {
     if (timestamp - this.lastDrawTime < SCROLL_MS) return;
     this.lastDrawTime = timestamp;
@@ -97,9 +135,18 @@ export class LedBoard {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, this.boardW, canvas.height);
 
-    if (!this.bitmap) return;
+    if (!this.bitmap) {
+      this.drawAllOff();
+      this.initFirst();
+      return;
+    }
 
     const VISIBLE = Math.ceil(this.boardW / STEP);
+
+    // When stalled (no data available), keep retrying without advancing scroll
+    if (this.stalled) {
+      this.appendNext();
+    }
 
     // When the separator enters the viewport from the right, pop next message
     if (!this.triggered && this.offset + VISIBLE >= this.triggerCol) {
@@ -153,7 +200,10 @@ export class LedBoard {
       ctx.fill();
     }
 
-    this.offset += 1;
+    // Keep scrolling unless stalled AND all content has left the viewport
+    if (!this.stalled || this.offset < this.bitmap.totalW) {
+      this.offset += 1;
+    }
 
     // Compact old content that's scrolled well past the left edge
     if (this.offset > this.boardW * 4) {

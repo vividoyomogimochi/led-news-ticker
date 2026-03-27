@@ -38,6 +38,11 @@ export class StreamingBitmap {
     this.totalW = x;
   }
 
+  /** Advance totalW by the given number of columns without adding any content. */
+  appendGap(columns: number): void {
+    this.totalW += columns;
+  }
+
   /** Append segments to the end of the bitmap. Returns the column where the new content starts. */
   append(segments: Segment[]): number {
     const startCol = this.totalW;

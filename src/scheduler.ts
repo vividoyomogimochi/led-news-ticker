@@ -7,7 +7,6 @@ interface TimedSegment {
 
 interface SchedulerOptions {
   ttlMs?: number;
-  fallbackText?: string;
 }
 
 const MAX_QUEUE = 64;
@@ -16,15 +15,10 @@ export class Scheduler {
   private sources: Source[] = [];
   private queue: TimedSegment[] = [];
   private ttlMs: number;
-  readonly fallbackSegment: Segment;
   private cleanupTimer: ReturnType<typeof setInterval>;
 
   constructor(options?: SchedulerOptions) {
     this.ttlMs = options?.ttlMs ?? 5 * 60 * 1000;
-    this.fallbackSegment = {
-      text: options?.fallbackText ?? 'NO SIGNAL',
-      type: 'normal',
-    };
     this.cleanupTimer = setInterval(() => this.cleanup(), 1000);
   }
 
@@ -48,15 +42,15 @@ export class Scheduler {
     this.unregisterAll();
   }
 
-  /** Pop the next non-expired segment, or return fallback if queue is empty. */
-  dequeue(): Segment {
+  /** Pop the next non-expired segment, or return null if queue is empty. */
+  dequeue(): Segment | null {
     while (this.queue.length > 0) {
       const entry = this.queue.shift()!;
       if (Date.now() < entry.expiresAt) {
         return entry.segment;
       }
     }
-    return this.fallbackSegment;
+    return null;
   }
 
   private cleanup(): void {
