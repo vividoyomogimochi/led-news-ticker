@@ -79,6 +79,7 @@ export function initThemeButtons(): void {
       if (!isWs) {
         (document.getElementById('cust-rss-url') as HTMLInputElement).value = sp.url || '';
         if (sp.interval) (document.getElementById('cust-rss-interval') as HTMLInputElement).value = String(Math.round(Number(sp.interval) / 60000));
+        (document.getElementById('cust-rss-proxy') as HTMLInputElement).checked = sp.noproxy !== '1';
       } else {
         (document.getElementById('cust-ws-url') as HTMLInputElement).value = sp.url || '';
       }

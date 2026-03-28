@@ -18,9 +18,11 @@ export function buildParams(): URLSearchParams {
   if (srcType === 'rss') {
     const url = (document.getElementById('cust-rss-url') as HTMLInputElement).value.trim();
     const interval = Number((document.getElementById('cust-rss-interval') as HTMLInputElement).value) || 5;
+    const useProxy = (document.getElementById('cust-rss-proxy') as HTMLInputElement).checked;
     p.set('type', 'rss');
     if (url) p.set('url', url);
     if (interval !== 5) p.set('interval', String(interval * 60 * 1000));
+    if (!useProxy) p.set('noproxy', '1');
   } else if (srcType === 'ws') {
     const url = (document.getElementById('cust-ws-url') as HTMLInputElement).value.trim();
     p.set('type', 'ws');

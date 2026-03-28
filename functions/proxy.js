@@ -52,6 +52,17 @@ export async function onRequest(context) {
     headers: { 'User-Agent': 'led-news-ticker/1.0' },
   });
 
+  // Only allow XML/RSS/Atom content types to prevent open-proxy abuse
+  const ct = (upstream.headers.get('Content-Type') ?? '').toLowerCase();
+  if (
+    !ct.includes('xml') &&
+    !ct.includes('rss') &&
+    !ct.includes('atom') &&
+    !ct.includes('text/plain')
+  ) {
+    return new Response('Unsupported content type', { status: 403 });
+  }
+
   const body = await upstream.arrayBuffer();
 
   return new Response(body, {

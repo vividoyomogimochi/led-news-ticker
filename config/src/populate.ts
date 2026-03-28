@@ -14,6 +14,7 @@ export function populateFromQueryParams(): void {
       const ms = Number(p.get('interval'));
       if (ms > 0) (document.getElementById('cust-rss-interval') as HTMLInputElement).value = String(Math.round(ms / 60000));
     }
+    if (p.get('noproxy') === '1') (document.getElementById('cust-rss-proxy') as HTMLInputElement).checked = false;
   } else if (type === 'ws') {
     if (p.has('url')) (document.getElementById('cust-ws-url') as HTMLInputElement).value = p.get('url')!;
   } else if (type === 'sse') {

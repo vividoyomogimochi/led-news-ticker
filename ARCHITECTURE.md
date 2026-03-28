@@ -58,7 +58,7 @@ content/
 functions/
   _middleware.js               メインページの og:image をクエリに応じて動的書き換え
   ogp.js                      OGP 画像生成（SVG 組み立て → resvg-wasm で PNG 出力）
-  proxy.js                    Cloudflare Functions の CORS プロキシ
+  proxy.js                    Cloudflare Functions の CORS プロキシ（Content-Type を XML/RSS/Atom/text に制限）
   s/[[path]].js               シェア URL デコーダー（/s/<packed> → /?params に 302 リダイレクト）
 
 scripts/

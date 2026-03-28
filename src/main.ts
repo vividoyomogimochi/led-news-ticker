@@ -10,6 +10,7 @@ import type { Segment, SegmentType } from './sources';
 const params = new URLSearchParams(location.search);
 const sourceType = params.get('type') ?? 'rss';
 const sourceUrl = params.get('url');
+const noProxy = params.get('noproxy') === '1';
 const segmentType = (params.get('segmentType') as SegmentType | null) ?? 'normal';
 
 // ── Color overrides from query ────────────────────────────
@@ -84,7 +85,7 @@ if (sourceUrl && sourceType === 'ws') {
       id: 'query-rss',
       url: sourceUrl,
       intervalMs,
-      corsProxy: '/proxy?url=',
+      corsProxy: noProxy ? '' : '/proxy?url=',
       segmentType,
     })
   );

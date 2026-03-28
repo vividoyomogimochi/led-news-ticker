@@ -44,7 +44,9 @@ export class RssSource implements Source {
   private async fetch(): Promise<void> {
     if (!this.onSegment) return;
     try {
-      const fetchUrl = this.corsProxy + encodeURIComponent(this.url);
+      const fetchUrl = this.corsProxy
+        ? this.corsProxy + encodeURIComponent(this.url)
+        : this.url;
       const res = await fetch(fetchUrl);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();

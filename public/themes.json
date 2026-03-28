@@ -13,7 +13,8 @@
       "label": "NHK ニュース",
       "params": {
         "type": "rss",
-        "url": "https://www3.nhk.or.jp/rss/news/cat0.xml"
+        "url": "https://www3.nhk.or.jp/rss/news/cat0.xml",
+        "noproxy": "1"
       }
     },
     {
