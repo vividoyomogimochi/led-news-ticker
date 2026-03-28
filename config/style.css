@@ -113,6 +113,15 @@ h1 {
   display: flex;
 }
 
+/* ── Source-type field groups ── */
+#cust-rss-fields,
+#cust-ws-fields,
+#cust-sse-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 /* ── Field ── */
 .field {
   display: flex;
