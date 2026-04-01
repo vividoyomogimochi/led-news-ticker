@@ -16,12 +16,12 @@ Vite の `build.rollupOptions.input` に 3 つとも登録済み。
 
 ```
 src/                        ティッカーのコアロジック
-  main.ts                     エントリポイント（パラメータ解析・ソース登録・描画開始）
+  main.ts                     エントリポイント（パラメータ解析・複数ソース登録・描画開始）
   led-board.ts                LedBoard クラス（canvas 描画・スクロール・リサイズ）
   streaming-bitmap.ts         StreamingBitmap クラス（文字列→ビットマップ列データ）
   led-colors.ts               LED カラースキーム型・デフォルト色・hex→glow 変換
   font-atlas.ts               FontAtlas クラス（ビルド済みバイナリからグリフ読み込み）
-  scheduler.ts                メッセージキュー（TTL 管理・フォールバック・重複排除）
+  scheduler.ts                メッセージキュー（ソース別サブキュー・ラウンドロビン dequeue・TTL 管理）
   sources/
     types.ts                    Segment / Source インターフェース
     rss.ts                      RSS フィードソース
@@ -45,6 +45,7 @@ config/                     設定画面の UI
     tabs.ts                     タブ切り替え
     color-sync.ts               カラーピッカー ↔ HEX フィールド双方向同期
     source-type.ts              RSS/WebSocket/SSE ラジオ切り替え・data info 表示
+    multi-source.ts             追加ソースブロックの動的追加・削除・パラメータ収集
     preview.ts                  プレビュー URL 生成（buildParams / buildThemeParams）
     theme.ts                    テーマ読み込み・カード配置・ボタンハンドラ
     theme-card.ts               テーマカード DOM 生成
@@ -71,12 +72,12 @@ scripts/
 ## データフロー
 
 ```
-[RSS/WebSocket/SSE/Sample Source]
+[Source 1: RSS/WS/SSE]  [Source 2]  [Source 3] ...
+        │                   │           │
+        ▼                   ▼           ▼
+   Scheduler（ソース別サブキュー・ラウンドロビン dequeue・TTL 管理）
         │
-        ▼
-   Scheduler（キュー蓄積・TTL 管理）
-        │
-        ▼  dequeue()
+        ▼  dequeue()（ラウンドロビン）
    LedBoard（スクロール制御）
         │
         ▼  requestNext trigger
