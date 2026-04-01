@@ -9,11 +9,14 @@ interface SchedulerOptions {
   ttlMs?: number;
 }
 
-const MAX_QUEUE = 64;
+const MAX_QUEUE_PER_SOURCE = 64;
 
 export class Scheduler {
   private sources: Source[] = [];
-  private queue: TimedSegment[] = [];
+  /** Per-source sub-queues, keyed by source index. */
+  private queues: TimedSegment[][] = [];
+  /** Round-robin cursor – index into this.queues. */
+  private robin = 0;
   private ttlMs: number;
   private cleanupTimer: ReturnType<typeof setInterval>;
 
@@ -23,9 +26,11 @@ export class Scheduler {
   }
 
   register(source: Source): void {
+    const idx = this.sources.length;
     this.sources.push(source);
+    this.queues.push([]);
     source.subscribe((segment) => {
-      this.enqueue(segment);
+      this.enqueue(idx, segment);
     });
   }
 
@@ -34,7 +39,8 @@ export class Scheduler {
       source.unsubscribe();
     }
     this.sources = [];
-    this.queue = [];
+    this.queues = [];
+    this.robin = 0;
   }
 
   destroy(): void {
@@ -42,25 +48,38 @@ export class Scheduler {
     this.unregisterAll();
   }
 
-  /** Pop the next non-expired segment, or return null if queue is empty. */
+  /** Pop the next non-expired segment using round-robin across sources. */
   dequeue(): Segment | null {
-    while (this.queue.length > 0) {
-      const entry = this.queue.shift()!;
-      if (Date.now() < entry.expiresAt) {
-        return entry.segment;
+    const n = this.queues.length;
+    if (n === 0) return null;
+
+    // Try each source starting from the current robin position.
+    for (let attempt = 0; attempt < n; attempt++) {
+      const idx = (this.robin + attempt) % n;
+      const q = this.queues[idx];
+      while (q.length > 0) {
+        const entry = q.shift()!;
+        if (Date.now() < entry.expiresAt) {
+          this.robin = (idx + 1) % n;
+          return entry.segment;
+        }
       }
     }
     return null;
   }
 
   private cleanup(): void {
-    this.queue = this.queue.filter((e) => Date.now() < e.expiresAt);
+    const now = Date.now();
+    for (let i = 0; i < this.queues.length; i++) {
+      this.queues[i] = this.queues[i].filter((e) => now < e.expiresAt);
+    }
   }
 
-  private enqueue(segment: Segment): void {
-    if (this.queue.length >= MAX_QUEUE) {
-      this.queue.shift();
+  private enqueue(idx: number, segment: Segment): void {
+    const q = this.queues[idx];
+    if (q.length >= MAX_QUEUE_PER_SOURCE) {
+      q.shift();
     }
-    this.queue.push({ segment, expiresAt: Date.now() + this.ttlMs });
+    q.push({ segment, expiresAt: Date.now() + this.ttlMs });
   }
 }
