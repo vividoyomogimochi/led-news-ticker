@@ -8,10 +8,6 @@ import type { Segment, SegmentType } from './sources';
 
 // ── Query params ──────────────────────────────────────────
 const params = new URLSearchParams(location.search);
-const sourceType = params.get('type') ?? 'rss';
-const sourceUrl = params.get('url');
-const noProxy = params.get('noproxy') === '1';
-const segmentType = (params.get('segmentType') as SegmentType | null) ?? 'normal';
 
 // ── Color overrides from query ────────────────────────────
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
@@ -30,66 +26,72 @@ if (offHex && HEX_RE.test(offHex)) {
 // ── Sources ──────────────────────────────────────────────
 const scheduler = new Scheduler();
 
-if (sourceUrl && sourceType === 'ws') {
-  scheduler.register(
-    new WebSocketSource({
-      id: 'query-ws',
-      url: sourceUrl,
-      parseMessage: (event: MessageEvent): Segment | null => {
-        const data = event.data as string;
-        try {
-          const obj = JSON.parse(data) as { text?: string; type?: string };
-          if (typeof obj.text === 'string') {
-            return {
-              text: obj.text,
-              type: (obj.type as SegmentType) ?? segmentType,
-            };
-          }
-        } catch {
-          // plain text fallback
-        }
-        return typeof data === 'string' && data.trim()
-          ? { text: data.trim(), type: segmentType }
-          : null;
-      },
-    })
-  );
-} else if (sourceUrl && sourceType === 'sse') {
-  scheduler.register(
-    new SseSource({
-      id: 'query-sse',
-      url: sourceUrl,
-      parseMessage: (event: MessageEvent): Segment | null => {
-        const data = event.data as string;
-        try {
-          const obj = JSON.parse(data) as { text?: string; type?: string };
-          if (typeof obj.text === 'string') {
-            return {
-              text: obj.text,
-              type: (obj.type as SegmentType) ?? segmentType,
-            };
-          }
-        } catch {
-          // plain text fallback
-        }
-        return typeof data === 'string' && data.trim()
-          ? { text: data.trim(), type: segmentType }
-          : null;
-      },
-    })
-  );
-} else if (sourceUrl && sourceType === 'rss') {
-  const intervalMs = Number(params.get('interval')) || 5 * 60 * 1000;
-  scheduler.register(
-    new RssSource({
-      id: 'query-rss',
-      url: sourceUrl,
-      intervalMs,
-      corsProxy: noProxy ? '' : '/proxy?url=',
-      segmentType,
-    })
-  );
-} else {
+function makeStreamParser(defaultType: SegmentType) {
+  return (event: MessageEvent): Segment | null => {
+    const data = event.data as string;
+    try {
+      const obj = JSON.parse(data) as { text?: string; type?: string };
+      if (typeof obj.text === 'string') {
+        return {
+          text: obj.text,
+          type: (obj.type as SegmentType) ?? defaultType,
+        };
+      }
+    } catch {
+      // plain text fallback
+    }
+    return typeof data === 'string' && data.trim()
+      ? { text: data.trim(), type: defaultType }
+      : null;
+  };
+}
+
+function registerSource(suffix: string): boolean {
+  const srcType = params.get('type' + suffix) ?? 'rss';
+  const srcUrl = params.get('url' + suffix);
+  const noProxy = params.get('noproxy' + suffix) === '1';
+  const segType = (params.get('segmentType' + suffix) as SegmentType | null) ?? 'normal';
+  if (!srcUrl) return false;
+
+  if (srcType === 'ws') {
+    scheduler.register(
+      new WebSocketSource({
+        id: 'query-ws' + suffix,
+        url: srcUrl,
+        parseMessage: makeStreamParser(segType),
+      })
+    );
+  } else if (srcType === 'sse') {
+    scheduler.register(
+      new SseSource({
+        id: 'query-sse' + suffix,
+        url: srcUrl,
+        parseMessage: makeStreamParser(segType),
+      })
+    );
+  } else {
+    const intervalMs = Number(params.get('interval' + suffix)) || 5 * 60 * 1000;
+    scheduler.register(
+      new RssSource({
+        id: 'query-rss' + suffix,
+        url: srcUrl,
+        intervalMs,
+        corsProxy: noProxy ? '' : '/proxy?url=',
+        segmentType: segType,
+      })
+    );
+  }
+  return true;
+}
+
+// Register primary source (no suffix) and numbered sources (2, 3, 4, ...)
+let hasSource = registerSource('');
+for (let i = 2; ; i++) {
+  if (!registerSource(String(i))) break;
+  hasSource = true;
+}
+
+if (!hasSource) {
   scheduler.register(
     new RssSource({
       id: 'nhk-world',
@@ -106,7 +108,10 @@ const canvas = document.getElementById('ledCanvas') as HTMLCanvasElement;
 
 FontAtlas.load('/fonts/led-ticker-font-atlas.bin').then((atlas) => {
   const board = new LedBoard(canvas, atlas, { colors: colorOverrides });
-  const isStreaming = sourceType === 'ws' || sourceType === 'sse';
+  const isStreaming = ['', ...Array.from({ length: 9 }, (_, i) => String(i + 2))].some((s) => {
+    const t = params.get('type' + s);
+    return t === 'ws' || t === 'sse';
+  });
   const fallback: Segment = { text: 'LED News Ticker Headline', type: 'normal' };
   board.setRequestNext(() => {
     // Skip messages containing characters the font cannot render

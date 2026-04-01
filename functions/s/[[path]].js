@@ -6,7 +6,7 @@
  * Format: "1" + base64url(deflate-raw(JSON)) or "0" + base64url(JSON)
  */
 
-const SHORT_TO_LONG = {
+const BASE_SHORT_TO_LONG = {
   t: 'type',
   u: 'url',
   i: 'interval',
@@ -17,7 +17,17 @@ const SHORT_TO_LONG = {
   sc: 'sepColor',
   oc: 'offColor',
   st: 'segmentType',
+  np: 'noproxy',
 };
+
+// Build map including numbered source keys (t2→type2, u2→url2, ...)
+const SHORT_TO_LONG = { ...BASE_SHORT_TO_LONG };
+const SOURCE_SHORT_KEYS = ['t', 'u', 'i', 'st', 'np'];
+for (let n = 2; n <= 9; n++) {
+  for (const sk of SOURCE_SHORT_KEYS) {
+    SHORT_TO_LONG[sk + n] = BASE_SHORT_TO_LONG[sk] + n;
+  }
+}
 
 const COLOR_KEYS = new Set(['normalColor', 'accentColor', 'sepColor', 'offColor']);
 const MAX_DECODED_SIZE = 2048;

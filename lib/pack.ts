@@ -7,7 +7,7 @@
  * Colors are stored without '#' prefix.
  */
 
-const KEY_MAP: Record<string, string> = {
+const BASE_KEY_MAP: Record<string, string> = {
   type: 't',
   url: 'u',
   interval: 'i',
@@ -18,9 +18,26 @@ const KEY_MAP: Record<string, string> = {
   sepColor: 'sc',
   offColor: 'oc',
   segmentType: 'st',
+  noproxy: 'np',
 };
 
+// Per-source keys that can have numeric suffixes (type2, url2, ...)
+const SOURCE_KEYS = ['type', 'url', 'interval', 'segmentType', 'noproxy'];
+
+function buildKeyMap(): Record<string, string> {
+  const map: Record<string, string> = { ...BASE_KEY_MAP };
+  for (let i = 2; i <= 9; i++) {
+    for (const k of SOURCE_KEYS) {
+      map[k + i] = (BASE_KEY_MAP[k] ?? k) + i;
+    }
+  }
+  return map;
+}
+
+const KEY_MAP = buildKeyMap();
+
 const COLOR_KEYS_SET = new Set(['normalColor', 'accentColor', 'sepColor', 'offColor']);
+const INTERVAL_RE = /^interval\d*$/;
 
 function toBase64Url(bytes: Uint8Array): string {
   let bin = '';
@@ -34,7 +51,7 @@ export async function packParams(params: URLSearchParams): Promise<string> {
     const short = KEY_MAP[k] ?? k;
     if (COLOR_KEYS_SET.has(k)) {
       obj[short] = v.replace(/^#/, '');
-    } else if (k === 'interval') {
+    } else if (INTERVAL_RE.test(k)) {
       obj[short] = Number(v);
     } else {
       obj[short] = v;
