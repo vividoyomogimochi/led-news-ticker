@@ -3,6 +3,7 @@ import type { ThemeEntry } from './state';
 import { COLOR_KEYS, COLOR_DEFAULTS, HEX_RE } from './constants';
 import { buildParams, buildThemeParams, updatePreview } from './preview';
 import { setSourceType } from './source-type';
+import { clearExtraSources } from './multi-source';
 import { stopCurrentAudio } from './audio-preview';
 import { makeThemeCard } from './theme-card';
 
@@ -69,6 +70,8 @@ export function initThemeButtons(): void {
   });
 
   document.getElementById('theme-customize-btn')!.addEventListener('click', () => {
+    clearExtraSources();
+
     const srcType = state.selectedSource?.params?.type;
     const isWs = srcType === 'ws';
 

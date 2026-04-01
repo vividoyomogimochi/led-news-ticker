@@ -1,5 +1,6 @@
 import { initColorSync } from './color-sync';
 import { initSourceTypeSwitch, syncDataInfo } from './source-type';
+import { initMultiSource } from './multi-source';
 import { initTabs } from './tabs';
 import { updatePreview } from './preview';
 import { loadThemes, initThemeButtons } from './theme';
@@ -8,6 +9,7 @@ import { initHelp } from './help';
 
 initColorSync(updatePreview);
 initSourceTypeSwitch(updatePreview);
+initMultiSource(() => { updatePreview(); syncDataInfo(); });
 initTabs((tab) => {
   updatePreview();
   syncDataInfo();

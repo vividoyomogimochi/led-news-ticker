@@ -1,5 +1,6 @@
 import { COLOR_KEYS, HEX_RE } from './constants';
 import { setSourceType } from './source-type';
+import { addSourceBlock } from './multi-source';
 
 export function populateFromQueryParams(): void {
   const p = new URLSearchParams(location.search);
@@ -19,6 +20,21 @@ export function populateFromQueryParams(): void {
     if (p.has('url')) (document.getElementById('cust-ws-url') as HTMLInputElement).value = p.get('url')!;
   } else if (type === 'sse') {
     if (p.has('url')) (document.getElementById('cust-sse-url') as HTMLInputElement).value = p.get('url')!;
+  }
+
+  // Restore additional sources (type2/url2, type3/url3, ...)
+  for (let i = 2; ; i++) {
+    const s = String(i);
+    const extraUrl = p.get('url' + s);
+    if (!extraUrl) break;
+    const extraType = p.get('type' + s) ?? 'rss';
+    const intervalMs = Number(p.get('interval' + s));
+    addSourceBlock({
+      type: extraType,
+      url: extraUrl,
+      interval: intervalMs > 0 ? Math.round(intervalMs / 60000) : undefined,
+      noproxy: p.get('noproxy' + s) === '1',
+    });
   }
 
   if (p.has('bg')) (document.getElementById('cust-bg') as HTMLInputElement).value = p.get('bg')!;

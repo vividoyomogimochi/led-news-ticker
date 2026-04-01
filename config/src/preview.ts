@@ -1,6 +1,7 @@
 import { state } from './state';
 import { COLOR_KEYS, HEX_RE } from './constants';
 import { getSourceType } from './source-type';
+import { collectExtraSourceParams } from './multi-source';
 
 function appendColorParams(p: URLSearchParams): void {
   for (const key of COLOR_KEYS) {
@@ -32,6 +33,7 @@ export function buildParams(): URLSearchParams {
     p.set('type', 'sse');
     if (url) p.set('url', url);
   }
+  collectExtraSourceParams(p);
   if (bg) p.set('bg', bg);
   if (audio) p.set('audio', audio);
   appendColorParams(p);

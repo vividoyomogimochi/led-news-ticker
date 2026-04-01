@@ -530,6 +530,79 @@ button[type='submit']:hover {
   text-shadow: 0 0 8px var(--amber-glow-strong);
 }
 
+/* ── Extra sources ── */
+#extra-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.extra-source {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 16px;
+}
+
+.extra-source-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.extra-source-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--amber-dim);
+  text-transform: uppercase;
+}
+
+.extra-source-remove {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--amber-dim);
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 4px 8px;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.extra-source-remove:hover {
+  border-color: #cc4400;
+  color: #cc4400;
+}
+
+.extra-source [class*="-fields-"] {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.add-source-btn {
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 2px;
+  color: var(--amber-dim);
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  padding: 10px;
+  text-transform: uppercase;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.add-source-btn:hover {
+  border-color: var(--amber-dim);
+  color: var(--amber);
+}
+
 /* ── Source type radio ── */
 .source-type-row {
   display: flex;

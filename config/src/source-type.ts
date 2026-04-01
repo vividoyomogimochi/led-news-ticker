@@ -19,10 +19,27 @@ function applySourceTypeVisibility(type: string): void {
 }
 
 export function syncDataInfo(): void {
-  const srcType = getSourceType();
   const isCustomize = state.activeTab === 'customize';
-  if (wsInfoEl) wsInfoEl.style.display = (isCustomize && srcType === 'ws') ? '' : 'none';
-  if (sseInfoEl) sseInfoEl.style.display = (isCustomize && srcType === 'sse') ? '' : 'none';
+  let hasWs = false;
+  let hasSse = false;
+
+  if (isCustomize) {
+    const primary = getSourceType();
+    hasWs = primary === 'ws';
+    hasSse = primary === 'sse';
+
+    // Check extra source blocks too
+    const extras = document.getElementById('extra-sources');
+    if (extras) {
+      for (const radio of extras.querySelectorAll<HTMLInputElement>('input[name^="source-type-"]:checked')) {
+        if (radio.value === 'ws') hasWs = true;
+        if (radio.value === 'sse') hasSse = true;
+      }
+    }
+  }
+
+  if (wsInfoEl) wsInfoEl.style.display = hasWs ? '' : 'none';
+  if (sseInfoEl) sseInfoEl.style.display = hasSse ? '' : 'none';
 }
 
 export function initSourceTypeSwitch(onUpdate: () => void): void {
