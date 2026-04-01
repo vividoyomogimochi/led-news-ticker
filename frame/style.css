@@ -20,12 +20,20 @@ h1 {
   letter-spacing: 0.1em;
 }
 .frame-container {
+  position: relative;
   width: 100%;
   border: 2px solid #333;
   border-radius: 8px;
   overflow: hidden;
   background: #000;
   padding: 8px 0;
+  cursor: pointer;
+}
+.frame-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 iframe {
   display: block;

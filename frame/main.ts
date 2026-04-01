@@ -91,3 +91,10 @@ window.addEventListener('message', (e) => {
     if (frameContainer) frameContainer.style.visibility = 'visible';
   }
 });
+
+// Open ticker in new tab on click
+if (frameContainer && iframe) {
+  frameContainer.addEventListener('click', () => {
+    window.open(iframe.src, '_blank', 'noopener');
+  });
+}
