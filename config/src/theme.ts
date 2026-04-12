@@ -63,10 +63,14 @@ export async function loadThemes(): Promise<void> {
 
 export { stopCurrentAudio };
 
+function targetPath(): string {
+  return state.mode === 'ticker' ? '/ticker/' : '/';
+}
+
 export function initThemeButtons(): void {
   document.getElementById('theme-open-btn')!.addEventListener('click', () => {
     const qs = buildThemeParams().toString();
-    location.href = '/' + (qs ? '?' + qs : '');
+    location.href = targetPath() + (qs ? '?' + qs : '');
   });
 
   document.getElementById('theme-customize-btn')!.addEventListener('click', () => {
@@ -116,6 +120,6 @@ export function initThemeButtons(): void {
   document.getElementById('panel-customize')!.addEventListener('submit', (e) => {
     e.preventDefault();
     const qs = buildParams().toString();
-    location.href = '/' + (qs ? '?' + qs : '');
+    location.href = targetPath() + (qs ? '?' + qs : '');
   });
 }

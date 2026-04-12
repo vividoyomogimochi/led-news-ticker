@@ -1,9 +1,11 @@
 import { COLOR_KEYS, HEX_RE } from './constants';
 import { setSourceType } from './source-type';
 import { addSourceBlock } from './multi-source';
+import { state } from './state';
 
 export function populateFromQueryParams(): void {
   const p = new URLSearchParams(location.search);
+  state.mode = p.get('mode');
   const type = p.get('type');
   if (!type) return;
 

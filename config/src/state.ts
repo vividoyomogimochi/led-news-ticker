@@ -8,4 +8,5 @@ export const state = {
   activeTab: 'theme',
   selectedSource: null as ThemeEntry | null,
   selectedDisplay: null as ThemeEntry | null,
+  mode: null as string | null,
 };
