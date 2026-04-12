@@ -50,13 +50,14 @@ export function buildThemeParams(): URLSearchParams {
 export function updatePreview(): void {
   const previewEl = document.getElementById('preview')!;
   previewEl.style.display = state.activeTab === 'help' ? 'none' : '';
+  const base = state.mode === 'ticker' ? '/ticker/' : '/';
   if (state.activeTab === 'theme') {
     const qs = buildThemeParams().toString();
-    const href = '/' + (qs ? '?' + qs : '');
+    const href = base + (qs ? '?' + qs : '');
     previewEl.innerHTML = '<a href="' + href + '">' + href + '</a>';
     return;
   }
   const qs = buildParams().toString();
-  const href = '/' + (qs ? '?' + qs : '');
+  const href = base + (qs ? '?' + qs : '');
   previewEl.innerHTML = '<a href="' + href + '">' + href + '</a>';
 }
