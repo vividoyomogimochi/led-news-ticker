@@ -63,6 +63,42 @@ h1 {
     0 0 32px var(--amber-glow);
 }
 
+/* ── Language switch ── */
+.lang-switch {
+  display: flex;
+  gap: 0;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: var(--amber-dim);
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  padding: 4px 12px;
+  transition: color 0.2s, background 0.2s, text-shadow 0.2s;
+}
+
+.lang-btn + .lang-btn {
+  border-left: 1px solid var(--border);
+}
+
+.lang-btn.active {
+  color: var(--amber);
+  background: rgba(255, 170, 0, 0.08);
+  text-shadow: 0 0 6px var(--amber-glow-strong);
+}
+
+.lang-btn:hover:not(.active) {
+  color: #bb7700;
+}
+
 /* ── Tabs ── */
 .tabs {
   display: flex;
@@ -685,6 +721,14 @@ button[type='submit']:hover {
 }
 
 /* ── Help content ── */
+/* Make i18n wrapper layout-transparent so children inherit panel flex gap. */
+.help-content [data-i18n-show] {
+  display: contents;
+}
+.help-content [data-i18n-show][hidden] {
+  display: none;
+}
+
 .help-content h1,
 .help-content h2,
 .help-content h3 {

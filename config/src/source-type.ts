@@ -1,4 +1,5 @@
 import { state } from './state';
+import { applyTranslations } from '../../lib/i18n';
 
 let wsInfoEl: HTMLElement | null = null;
 let sseInfoEl: HTMLElement | null = null;
@@ -49,11 +50,13 @@ export function initSourceTypeSwitch(onUpdate: () => void): void {
   wsInfoEl = wsInfoTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
   wsInfoEl.style.display = 'none';
   previewEl.insertAdjacentElement('afterend', wsInfoEl);
+  applyTranslations(wsInfoEl);
 
   const sseInfoTemplate = document.getElementById('sse-data-info') as HTMLTemplateElement;
   sseInfoEl = sseInfoTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
   sseInfoEl.style.display = 'none';
   wsInfoEl.insertAdjacentElement('afterend', sseInfoEl);
+  applyTranslations(sseInfoEl);
 
   document.querySelectorAll('input[name="source-type"]').forEach((radio) => {
     radio.addEventListener('change', () => {

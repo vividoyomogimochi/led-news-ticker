@@ -1,3 +1,5 @@
+import { applyTranslations } from '../../lib/i18n';
+
 export function initHelp(): void {
   const contactTpl = document.getElementById('contact-section') as HTMLTemplateElement;
   const helpPanel = document.getElementById('panel-help')!;
@@ -9,5 +11,6 @@ export function initHelp(): void {
     const contact = tmp.querySelector('.contact');
     if (divider) helpPanel.appendChild(divider);
     if (contact) helpPanel.appendChild(contact);
+    applyTranslations(helpPanel);
   }
 }

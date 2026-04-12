@@ -6,6 +6,7 @@ import { setSourceType } from './source-type';
 import { clearExtraSources } from './multi-source';
 import { stopCurrentAudio } from './audio-preview';
 import { makeThemeCard } from './theme-card';
+import { t } from '../../lib/i18n';
 
 let themesLoaded = false;
 
@@ -40,7 +41,8 @@ export async function loadThemes(): Promise<void> {
       });
     } else {
       const opt = document.createElement('option');
-      opt.textContent = 'ソースが登録されていません';
+      opt.dataset.i18n = 'theme.empty.noSources';
+      opt.textContent = t('theme.empty.noSources');
       opt.disabled = true;
       sourceSelect.appendChild(opt);
     }
@@ -52,11 +54,19 @@ export async function loadThemes(): Promise<void> {
       state.selectedDisplay = displays[0];
       displayGrid.firstElementChild!.classList.add('selected');
     } else {
-      displayGrid.innerHTML = '<p class="theme-empty">ディスプレイが登録されていません</p>';
+      const empty = document.createElement('p');
+      empty.className = 'theme-empty';
+      empty.dataset.i18n = 'theme.empty.noDisplays';
+      empty.textContent = t('theme.empty.noDisplays');
+      displayGrid.replaceChildren(empty);
     }
     updatePreview();
   } catch {
-    sourceSelect.innerHTML = '<option disabled>読み込みに失敗しました</option>';
+    const opt = document.createElement('option');
+    opt.disabled = true;
+    opt.dataset.i18n = 'theme.empty.loadFailed';
+    opt.textContent = t('theme.empty.loadFailed');
+    sourceSelect.replaceChildren(opt);
     displayGrid.innerHTML = '';
   }
 }

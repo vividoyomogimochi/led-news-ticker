@@ -1,3 +1,8 @@
+import { applyTranslations, initLang } from '../lib/i18n';
+
+initLang();
+applyTranslations();
+
 // Forward query params to the ticker iframe
 const iframe = document.querySelector('iframe');
 if (iframe && location.search) {

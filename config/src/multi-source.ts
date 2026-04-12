@@ -3,6 +3,7 @@
  * The primary source (no suffix) keeps the existing DOM; this module handles
  * dynamically added/removed numbered sources.
  */
+import { applyTranslations } from '../../lib/i18n';
 
 export interface ExtraSourceParams {
   type: string;
@@ -54,7 +55,7 @@ export function addSourceBlock(preset?: Partial<ExtraSourceParams>): number {
       <button type="button" class="extra-source-remove" data-remove="${id}">&times;</button>
     </div>
     <div class="field">
-      <label>ソース種別</label>
+      <label data-i18n="customize.field.sourceType"></label>
       <div class="source-type-row">
         <label class="radio-label">
           <input type="radio" name="source-type-${id}" value="rss" ${type === 'rss' ? 'checked' : ''} />
@@ -72,36 +73,37 @@ export function addSourceBlock(preset?: Partial<ExtraSourceParams>): number {
     </div>
     <div class="extra-rss-fields-${id}" style="${type === 'rss' ? '' : 'display:none'}">
       <div class="field">
-        <label for="extra-rss-url-${id}">フィード URL</label>
+        <label for="extra-rss-url-${id}" data-i18n="customize.field.rssUrl"></label>
         <input id="extra-rss-url-${id}" type="url" placeholder="https://example.com/feed.xml" value="${preset?.type === 'rss' && preset?.url ? preset.url : ''}" />
       </div>
       <div class="field">
-        <label for="extra-rss-interval-${id}">取得間隔</label>
+        <label for="extra-rss-interval-${id}" data-i18n="customize.field.rssInterval"></label>
         <div class="row">
           <input id="extra-rss-interval-${id}" type="number" min="1" value="${preset?.interval ?? 5}" />
-          <span class="unit">分</span>
+          <span class="unit" data-i18n="customize.field.rssIntervalUnit"></span>
         </div>
       </div>
       <div class="field">
         <label class="checkbox-label">
           <input id="extra-rss-proxy-${id}" type="checkbox" ${preset?.noproxy ? '' : 'checked'} />
-          CORSプロキシを使用する
+          <span data-i18n="customize.field.rssProxy"></span>
         </label>
       </div>
     </div>
     <div class="extra-ws-fields-${id}" style="${type === 'ws' ? '' : 'display:none'}">
       <div class="field">
-        <label for="extra-ws-url-${id}">WebSocket URL</label>
+        <label for="extra-ws-url-${id}" data-i18n="customize.field.wsUrl"></label>
         <input id="extra-ws-url-${id}" type="url" placeholder="ws://localhost:8080" value="${preset?.type === 'ws' && preset?.url ? preset.url : ''}" />
       </div>
     </div>
     <div class="extra-sse-fields-${id}" style="${type === 'sse' ? '' : 'display:none'}">
       <div class="field">
-        <label for="extra-sse-url-${id}">SSE URL</label>
+        <label for="extra-sse-url-${id}" data-i18n="customize.field.sseUrl"></label>
         <input id="extra-sse-url-${id}" type="url" placeholder="http://localhost:8080/events" value="${preset?.type === 'sse' && preset?.url ? preset.url : ''}" />
       </div>
     </div>
   `;
+  applyTranslations(block);
 
   // Source type switching
   block.querySelectorAll<HTMLInputElement>(`input[name="source-type-${id}"]`).forEach((radio) => {

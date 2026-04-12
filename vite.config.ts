@@ -4,9 +4,14 @@ import { readFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { Marked } from 'marked';
 
-const helpMd = readFileSync(resolve(__dirname, 'content/help.md'), 'utf-8');
+const helpMdJa = readFileSync(resolve(__dirname, 'content/help.md'), 'utf-8');
+const helpMdEn = readFileSync(resolve(__dirname, 'content/help.en.md'), 'utf-8');
 const marked = new Marked();
-const helpHtml = marked.parse(helpMd) as string;
+const helpHtmlJa = marked.parse(helpMdJa) as string;
+const helpHtmlEn = marked.parse(helpMdEn) as string;
+const helpHtml =
+  `<div data-i18n-show="ja" lang="ja">${helpHtmlJa}</div>` +
+  `<div data-i18n-show="en" lang="en">${helpHtmlEn}</div>`;
 
 const commitHash = (() => {
   try {

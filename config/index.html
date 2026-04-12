@@ -25,6 +25,10 @@
     <div class="header">
       <p class="logo">LED News Ticker</p>
       <h1>Config</h1>
+      <div class="lang-switch" id="lang-switch">
+        <button type="button" class="lang-btn" data-lang="ja">JA</button>
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+      </div>
     </div>
 
     <div class="tabs">
@@ -36,25 +40,25 @@
     <!-- Theme -->
     <div class="panel active" id="panel-theme">
       <div class="theme-section">
-        <p class="theme-section-title">Source</p>
+        <p class="theme-section-title" data-i18n="theme.section.source">Source</p>
         <select id="theme-source-select"></select>
       </div>
       <div class="theme-section">
-        <p class="theme-section-title">Display</p>
+        <p class="theme-section-title" data-i18n="theme.section.display">Display</p>
         <div class="theme-grid" id="theme-display-grid">
-          <p class="theme-empty">読み込み中...</p>
+          <p class="theme-empty" data-i18n="theme.empty.loading">読み込み中...</p>
         </div>
       </div>
       <div class="theme-actions">
-        <button class="theme-btn theme-btn-primary" id="theme-open-btn" type="button">ティッカーを開く →</button>
-        <button class="theme-btn" id="theme-customize-btn" type="button">カスタマイズ →</button>
+        <button class="theme-btn theme-btn-primary" id="theme-open-btn" type="button" data-i18n="theme.btn.open">ティッカーを開く →</button>
+        <button class="theme-btn" id="theme-customize-btn" type="button" data-i18n="theme.btn.customize">カスタマイズ →</button>
       </div>
     </div>
 
     <!-- Customize -->
     <form class="panel" id="panel-customize">
       <div class="field">
-        <label>ソース種別</label>
+        <label data-i18n="customize.field.sourceType">ソース種別</label>
         <div class="source-type-row">
           <label class="radio-label">
             <input type="radio" name="source-type" value="rss" checked />
@@ -73,122 +77,122 @@
 
       <div id="cust-rss-fields">
         <div class="field">
-          <label for="cust-rss-url">フィード URL</label>
+          <label for="cust-rss-url" data-i18n="customize.field.rssUrl">フィード URL</label>
           <input id="cust-rss-url" type="url" placeholder="https://example.com/feed.xml" />
         </div>
         <div class="field">
-          <label for="cust-rss-interval">取得間隔</label>
+          <label for="cust-rss-interval" data-i18n="customize.field.rssInterval">取得間隔</label>
           <div class="row">
             <input id="cust-rss-interval" type="number" min="1" value="5" />
-            <span class="unit">分</span>
+            <span class="unit" data-i18n="customize.field.rssIntervalUnit">分</span>
           </div>
         </div>
         <div class="field">
           <label class="checkbox-label">
             <input id="cust-rss-proxy" type="checkbox" checked />
-            CORSプロキシを使用する
+            <span data-i18n="customize.field.rssProxy">CORSプロキシを使用する</span>
           </label>
-          <p class="hint">フィードが CORS に対応している場合はオフにできます</p>
+          <p class="hint" data-i18n="customize.field.rssProxyHint">フィードが CORS に対応している場合はオフにできます</p>
         </div>
       </div>
 
       <div id="cust-ws-fields" style="display:none">
         <div class="field">
-          <label for="cust-ws-url">WebSocket URL</label>
+          <label for="cust-ws-url" data-i18n="customize.field.wsUrl">WebSocket URL</label>
           <input id="cust-ws-url" type="url" placeholder="ws://localhost:8080" />
         </div>
       </div>
 
       <div id="cust-sse-fields" style="display:none">
         <div class="field">
-          <label for="cust-sse-url">SSE URL</label>
+          <label for="cust-sse-url" data-i18n="customize.field.sseUrl">SSE URL</label>
           <input id="cust-sse-url" type="url" placeholder="http://localhost:8080/events" />
         </div>
       </div>
 
       <div id="extra-sources"></div>
 
-      <button type="button" class="add-source-btn" id="add-source-btn">+ ソースを追加</button>
+      <button type="button" class="add-source-btn" id="add-source-btn" data-i18n="customize.btn.addSource">+ ソースを追加</button>
 
       <hr class="divider" />
 
       <div class="field">
-        <label for="cust-bg">壁紙 URL</label>
+        <label for="cust-bg" data-i18n="customize.field.bg">壁紙 URL</label>
         <input id="cust-bg" type="text" placeholder="https://example.com/bg.jpg" />
-        <p class="hint">ページの背景に適用されます</p>
+        <p class="hint" data-i18n="customize.field.bgHint">ページの背景に適用されます</p>
       </div>
 
       <div class="field">
-        <label for="cust-audio">BGM URL</label>
+        <label for="cust-audio" data-i18n="customize.field.audio">BGM URL</label>
         <input id="cust-audio" type="text" placeholder="https://example.com/audio.mp3" />
-        <p class="hint">ループ再生されます</p>
+        <p class="hint" data-i18n="customize.field.audioHint">ループ再生されます</p>
       </div>
 
       <hr class="divider" />
 
       <div class="color-group">
-        <p class="color-group-title">LED カラー（任意）</p>
+        <p class="color-group-title" data-i18n="customize.colors.title">LED カラー（任意）</p>
         <div class="color-row">
-          <label for="cust-normalColor">通常</label>
+          <label for="cust-normalColor" data-i18n="customize.colors.normal">通常</label>
           <input id="cust-normalColor" type="color" value="#e0e0e0" />
           <input id="cust-normalColor-hex" type="text" placeholder="#e0e0e0" />
         </div>
         <div class="color-row">
-          <label for="cust-accentColor">アクセント</label>
+          <label for="cust-accentColor" data-i18n="customize.colors.accent">アクセント</label>
           <input id="cust-accentColor" type="color" value="#ffdd33" />
           <input id="cust-accentColor-hex" type="text" placeholder="#ffdd33" />
         </div>
         <div class="color-row">
-          <label for="cust-sepColor">区切り</label>
+          <label for="cust-sepColor" data-i18n="customize.colors.sep">区切り</label>
           <input id="cust-sepColor" type="color" value="#cc2200" />
           <input id="cust-sepColor-hex" type="text" placeholder="#cc2200" />
         </div>
-        <p class="hint">空欄でデフォルト色を使用</p>
+        <p class="hint" data-i18n="customize.colors.hint">空欄でデフォルト色を使用</p>
       </div>
 
-      <button type="submit">ティッカーを開く →</button>
+      <button type="submit" data-i18n="customize.btn.openTicker">ティッカーを開く →</button>
     </form>
 
     <!-- Help -->
     <div class="panel help-content" id="panel-help">
       <!--HELP_CONTENT-->
-      <template id="contact-section"><hr class="divider" /><div class="contact"><p>お問い合わせ: <a href="mailto:%VITE_CONTACT%">%VITE_CONTACT%</a></p></div></template>
+      <template id="contact-section"><hr class="divider" /><div class="contact"><p><span data-i18n="contact.label">お問い合わせ:</span> <a href="mailto:%VITE_CONTACT%">%VITE_CONTACT%</a></p></div></template>
     </div>
 
     <div class="preview" id="preview"></div>
 
     <template id="sse-data-info">
       <div class="data-info">
-        <p class="data-info-title">受信データ形式（SSE）</p>
+        <p class="data-info-title" data-i18n="dataInfo.sse.title">受信データ形式（SSE）</p>
         <div class="data-block">
-          <p class="data-block-label">JSON（推奨）</p>
-          <pre><code>data: { "text": "表示テキスト", "type": "normal" }</code></pre>
-          <p class="hint">
+          <p class="data-block-label" data-i18n="dataInfo.json">JSON（推奨）</p>
+          <pre><code data-i18n="dataInfo.example.sseJson">data: { "text": "表示テキスト", "type": "normal" }</code></pre>
+          <p class="hint" data-i18n-html="dataInfo.jsonHint">
             <code>type</code> は省略可。<br />値: <code>normal</code> / <code>accent</code>
           </p>
         </div>
         <div class="data-block">
-          <p class="data-block-label">プレーンテキスト</p>
-          <pre><code>data: 表示テキスト</code></pre>
-          <p class="hint">JSON でない文字列はそのまま表示。</p>
+          <p class="data-block-label" data-i18n="dataInfo.plain">プレーンテキスト</p>
+          <pre><code data-i18n="dataInfo.example.ssePlain">data: 表示テキスト</code></pre>
+          <p class="hint" data-i18n="dataInfo.plainHint">JSON でない文字列はそのまま表示。</p>
         </div>
       </div>
     </template>
 
     <template id="ws-data-info">
       <div class="data-info">
-        <p class="data-info-title">受信データ形式（WebSocket）</p>
+        <p class="data-info-title" data-i18n="dataInfo.ws.title">受信データ形式（WebSocket）</p>
         <div class="data-block">
-          <p class="data-block-label">JSON（推奨）</p>
-          <pre><code>{ "text": "表示テキスト", "type": "normal" }</code></pre>
-          <p class="hint">
+          <p class="data-block-label" data-i18n="dataInfo.json">JSON（推奨）</p>
+          <pre><code data-i18n="dataInfo.example.wsJson">{ "text": "表示テキスト", "type": "normal" }</code></pre>
+          <p class="hint" data-i18n-html="dataInfo.jsonHint">
             <code>type</code> は省略可。<br />値: <code>normal</code> / <code>accent</code>
           </p>
         </div>
         <div class="data-block">
-          <p class="data-block-label">プレーンテキスト</p>
-          <pre><code>表示テキスト</code></pre>
-          <p class="hint">JSON でない文字列はそのまま表示。</p>
+          <p class="data-block-label" data-i18n="dataInfo.plain">プレーンテキスト</p>
+          <pre><code data-i18n="dataInfo.example.wsPlain">表示テキスト</code></pre>
+          <p class="hint" data-i18n="dataInfo.plainHint">JSON でない文字列はそのまま表示。</p>
         </div>
       </div>
     </template>
