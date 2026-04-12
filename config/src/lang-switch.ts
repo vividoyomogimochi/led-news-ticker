@@ -2,6 +2,7 @@ import { applyTranslations, getLang, setLang } from '../../lib/i18n';
 import type { Lang } from '../../lib/i18n';
 import { syncDataInfo } from './source-type';
 import { updatePreview } from './preview';
+import { applyLangDefaultSource } from './theme';
 
 function refreshActive(): void {
   const lang = getLang();
@@ -25,6 +26,7 @@ export function initLangSwitch(): void {
       refreshActive();
       // Re-render dynamic content that uses cached strings
       syncDataInfo();
+      applyLangDefaultSource();
       updatePreview();
     });
   }

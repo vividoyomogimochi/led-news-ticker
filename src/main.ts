@@ -5,6 +5,12 @@ import type { LedColorScheme } from './led-colors';
 import { FontAtlas } from './font-atlas';
 import { RssSource, WebSocketSource, SseSource } from './sources';
 import type { Segment, SegmentType } from './sources';
+import { detectLang } from '../lib/i18n';
+
+const FALLBACK_RSS: Record<'ja' | 'en', { id: string; url: string; noProxy: boolean }> = {
+  ja: { id: 'nhk-news', url: 'https://www3.nhk.or.jp/rss/news/cat0.xml', noProxy: true },
+  en: { id: 'bbc-world', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', noProxy: false },
+};
 
 // ── Query params ──────────────────────────────────────────
 const params = new URLSearchParams(location.search);
@@ -92,12 +98,13 @@ for (let i = 2; ; i++) {
 }
 
 if (!hasSource) {
+  const fallback = FALLBACK_RSS[detectLang()];
   scheduler.register(
     new RssSource({
-      id: 'nhk-world',
-      url: 'https://kyoko-np.net/index.xml',
+      id: fallback.id,
+      url: fallback.url,
       intervalMs: 5 * 60 * 1000,
-      corsProxy: '/proxy?url=',
+      corsProxy: fallback.noProxy ? '' : '/proxy?url=',
       segmentType: 'normal',
     })
   );

@@ -6,9 +6,28 @@ import { setSourceType } from './source-type';
 import { clearExtraSources } from './multi-source';
 import { stopCurrentAudio } from './audio-preview';
 import { makeThemeCard } from './theme-card';
-import { t } from '../../lib/i18n';
+import { getLang, t } from '../../lib/i18n';
+import type { Lang } from '../../lib/i18n';
 
 let themesLoaded = false;
+let loadedSources: ThemeEntry[] = [];
+let defaultSourceIds: Partial<Record<Lang, string>> = {};
+
+function pickDefaultSource(lang: Lang): ThemeEntry | null {
+  const id = defaultSourceIds[lang];
+  return (id && loadedSources.find((s) => s.id === id)) || loadedSources[0] || null;
+}
+
+export function applyLangDefaultSource(): void {
+  if (!loadedSources.length) return;
+  const sourceSelect = document.getElementById('theme-source-select') as HTMLSelectElement | null;
+  if (!sourceSelect) return;
+  const next = pickDefaultSource(getLang());
+  if (!next) return;
+  sourceSelect.value = next.id;
+  state.selectedSource = next;
+  updatePreview();
+}
 
 export async function loadThemes(): Promise<void> {
   if (themesLoaded) return;
@@ -23,6 +42,8 @@ export async function loadThemes(): Promise<void> {
 
     const sources: ThemeEntry[] = data.sources || [];
     const displays: ThemeEntry[] = data.displays || [];
+    loadedSources = sources;
+    defaultSourceIds = (data.defaultSources as Partial<Record<Lang, string>>) || {};
 
     sourceSelect.innerHTML = '';
     displayGrid.innerHTML = '';
@@ -34,7 +55,9 @@ export async function loadThemes(): Promise<void> {
         opt.textContent = theme.label;
         sourceSelect.appendChild(opt);
       }
-      state.selectedSource = sources[0];
+      const initial = pickDefaultSource(getLang());
+      state.selectedSource = initial;
+      if (initial) sourceSelect.value = initial.id;
       sourceSelect.addEventListener('change', () => {
         state.selectedSource = sources.find((s) => s.id === sourceSelect.value) || null;
         updatePreview();

@@ -1,13 +1,9 @@
 {
+  "defaultSources": {
+    "ja": "nhk-news",
+    "en": "bbc-world"
+  },
   "sources": [
-    {
-      "id": "kyoko-np",
-      "label": "虚構新聞社",
-      "params": {
-        "type": "rss",
-        "url": "https://kyoko-np.net/index.xml"
-      }
-    },
     {
       "id": "nhk-news",
       "label": "NHK ニュース",
@@ -55,6 +51,46 @@
       "params": {
         "type": "rss",
         "url": "https://www.bengo4.com/api/topics/rss"
+      }
+    },
+    {
+      "id": "kyoko-np",
+      "label": "虚構新聞社",
+      "params": {
+        "type": "rss",
+        "url": "https://kyoko-np.net/index.xml"
+      }
+    },
+    {
+      "id": "bbc-world",
+      "label": "BBC World News",
+      "params": {
+        "type": "rss",
+        "url": "https://feeds.bbci.co.uk/news/world/rss.xml"
+      }
+    },
+    {
+      "id": "npr-news",
+      "label": "NPR News",
+      "params": {
+        "type": "rss",
+        "url": "https://feeds.npr.org/1001/rss.xml"
+      }
+    },
+    {
+      "id": "hacker-news",
+      "label": "Hacker News",
+      "params": {
+        "type": "rss",
+        "url": "https://news.ycombinator.com/rss"
+      }
+    },
+    {
+      "id": "the-verge",
+      "label": "The Verge",
+      "params": {
+        "type": "rss",
+        "url": "https://www.theverge.com/rss/index.xml"
       }
     }
   ],
